@@ -1,6 +1,8 @@
 // Injects [assembly: IgnoresAccessChecksTo("<game assembly>")] for every
 // referenced Timberborn.*/SecondShift.* assembly, defining the attribute type
-// locally (Unity Mono does not ship it). Usage: AccessInjector <dll> [dll...]
+// locally. All injected references must reuse the target module's own core
+// library scope — importing from the writing runtime leaks System.Private.CoreLib.
+// Usage: AccessInjector <dll> [dll...]
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -9,19 +11,29 @@ foreach (var path in args) {
     var asm = AssemblyDefinition.ReadAssembly(new MemoryStream(bytes));
     var module = asm.MainModule;
 
+    // Core-library assembly ref already used by this module (mscorlib or netstandard).
+    var coreRef = module.AssemblyReferences.FirstOrDefault(r => r.Name == "mscorlib")
+                  ?? module.AssemblyReferences.FirstOrDefault(r => r.Name == "netstandard");
+    if (coreRef == null) throw new InvalidOperationException($"{path}: no core assembly reference found");
+
+    TypeReference objectType = module.GetTypeReferences().FirstOrDefault(t => t.FullName == "System.Object")
+        ?? new TypeReference("System", "Object", module, coreRef, false);
+
     // Define the attribute type if missing.
     var attrType = module.GetType("System.Runtime.CompilerServices", "IgnoresAccessChecksToAttribute");
     if (attrType == null) {
         attrType = new TypeDefinition(
             "System.Runtime.CompilerServices", "IgnoresAccessChecksToAttribute",
             TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
-            module.ImportReference(typeof(Attribute)));
+            objectType);
         var field = new FieldDefinition("_assemblyName", FieldAttributes.Private, module.TypeSystem.String);
         var ctor = new MethodDefinition(".ctor", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName, module.TypeSystem.Void);
         ctor.Parameters.Add(new ParameterDefinition("assemblyName", ParameterAttributes.None, module.TypeSystem.String));
+        // object ctor with the same core-library scope
+        var objCtor = new MethodReference(".ctor", module.TypeSystem.Void, objectType) { HasThis = true };
         var il = ctor.Body.GetILProcessor();
         il.Emit(OpCodes.Ldarg_0);
-        il.Emit(OpCodes.Call, module.ImportReference(typeof(object).GetConstructor(Type.EmptyTypes)));
+        il.Emit(OpCodes.Call, objCtor);
         il.Emit(OpCodes.Ldarg_0);
         il.Emit(OpCodes.Ldarg_1);
         il.Emit(OpCodes.Stfld, field);
@@ -47,7 +59,6 @@ foreach (var path in args) {
         asm.CustomAttributes.Add(attr);
     }
 
-    var writer = new WriterParameters(); // strong-name: none
     using (var fs = File.Create(path)) asm.Write(fs);
     Console.WriteLine($"{Path.GetFileName(path)}: IgnoresAccessChecksTo -> {string.Join(", ", targets)}");
 }
