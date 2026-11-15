@@ -118,6 +118,9 @@ namespace SecondShift.CoreUI {
       _shiftModeDropdown = new Dropdown();
       _shiftModeDropdown.Initialize(_dropdownListDrawer);
       _shiftModeDropdown.OverrideLabelLocKey(ShiftModeLocKey);
+      // Runtime-created dropdowns never get Localize() called, so the internal
+      // label stays empty; hide it and render our own row label instead.
+      _shiftModeDropdown.Q<Label>("Label").style.display = DisplayStyle.None;
       _dropdownItemsSetter.SetItems(_shiftModeDropdown, new ShiftModeDropdownProvider(
           new[] { _loc.T(ModeRegularLocKey), _loc.T(ModeTwoShiftsLocKey), _loc.T(ModeThreeShiftsLocKey) },
           () => _twoShiftsWorkplace?.ShiftCount ?? 0,
@@ -126,7 +129,17 @@ namespace SecondShift.CoreUI {
               _twoShiftsWorkplace.SetShiftCount(count);
             }
           }));
-      toggleParent.Insert(0, _shiftModeDropdown);
+      // Label on the left, dropdown pushed to the right.
+      var modeRow = new VisualElement();
+      modeRow.style.flexDirection = FlexDirection.Row;
+      modeRow.style.alignItems = Align.Center;
+      modeRow.style.flexGrow = 1;
+      var modeLabel = new Label(_loc.T(ShiftModeLocKey));
+      modeLabel.AddToClassList("entity-panel__single-line-text");
+      modeLabel.style.flexGrow = 1;
+      modeRow.Add(modeLabel);
+      modeRow.Add(_shiftModeDropdown);
+      toggleParent.Add(modeRow);
 
       // Give the shift-viewer bar its own full-width row: sharing the row with
       // the flexed dropdown squeezes three buttons.
@@ -134,7 +147,7 @@ namespace SecondShift.CoreUI {
       var oldRow = barWrapper.parent;
       var barRow = new VisualElement();
       barRow.style.flexDirection = FlexDirection.Row;
-      barRow.style.justifyContent = Justify.Center;
+      barRow.style.justifyContent = Justify.FlexEnd;
       barRow.style.marginTop = 2;
       oldRow.parent.Insert(oldRow.parent.IndexOf(oldRow) + 1, barRow);
       oldRow.Remove(barWrapper);
