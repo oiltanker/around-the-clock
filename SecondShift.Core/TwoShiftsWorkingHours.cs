@@ -29,7 +29,7 @@ namespace SecondShift.Core {
     }
 
     public bool AreWorkingHours() {
-      if (_workerWorkingHours._ignoreWorkingHours) {
+      if (Access.GetField<bool>(_workerWorkingHours, "_ignoreWorkingHours")) {
         return true;
       }
       var count = WorkplaceShiftCount;

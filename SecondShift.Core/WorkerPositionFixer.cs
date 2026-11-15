@@ -1,4 +1,5 @@
-﻿using Timberborn.BaseComponentSystem;
+﻿using System.Collections.Generic;
+using Timberborn.BaseComponentSystem;
 using Timberborn.Common;
 using Timberborn.EntitySystem;
 using Timberborn.Persistence;
@@ -40,11 +41,12 @@ namespace SecondShift.Core {
       if (_loadedPosition.HasValue && _worker.Workplace != null) {
         if (_worker.Workplace.MaxWorkers > _loadedPosition) {
           var currentIndex = _worker.Workplace.AssignedWorkers.IndexOf(_worker);
+          var assigned = Access.GetField<List<Worker>>(_worker.Workplace, "_assignedWorkers");
           if (currentIndex != _loadedPosition
               && currentIndex != -1
-              && _loadedPosition.Value < _worker.Workplace._assignedWorkers.Count) {
-            _worker.Workplace._assignedWorkers.RemoveAt(currentIndex);
-            _worker.Workplace._assignedWorkers.Insert(_loadedPosition.Value, _worker);
+              && _loadedPosition.Value < assigned.Count) {
+            assigned.RemoveAt(currentIndex);
+            assigned.Insert(_loadedPosition.Value, _worker);
           }
         }
       }

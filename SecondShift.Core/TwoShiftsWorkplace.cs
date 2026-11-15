@@ -56,7 +56,8 @@ namespace SecondShift.Core {
         }
       }
       if (_desiredWorkersToLoad.HasValue) {
-        _workplace.SetDesiredWorkers(Math.Min(_desiredWorkersToLoad.Value, _workplace.MaxWorkers));
+        Access.Invoke(_workplace, "SetDesiredWorkers",
+                      Math.Min(_desiredWorkersToLoad.Value, _workplace.MaxWorkers));
       }
       WasLoaded = true;
     }
@@ -100,14 +101,14 @@ namespace SecondShift.Core {
       }
       if (!isLoading) {
         if (old == 0 && count > 0) {
-          _workplace.SetDesiredWorkers(_workplace.DesiredWorkers * count);
+          Access.Invoke(_workplace, "SetDesiredWorkers", _workplace.DesiredWorkers * count);
         } else if (old > 0 && count == 0) {
           var workersToUnassign = _workplace.DesiredWorkers - _workplace.DesiredWorkers / old;
-          _workplace.SetDesiredWorkers(_workplace.DesiredWorkers / old);
+          Access.Invoke(_workplace, "SetDesiredWorkers", _workplace.DesiredWorkers / old);
           UnassignOverflow(workersToUnassign);
         } else {
           var baseWorkers = _workplace.DesiredWorkers / old;
-          _workplace.SetDesiredWorkers(baseWorkers * count);
+          Access.Invoke(_workplace, "SetDesiredWorkers", baseWorkers * count);
           if (count < old) {
             UnassignOverflow(baseWorkers * (old - count));
           }
@@ -119,7 +120,7 @@ namespace SecondShift.Core {
 
     private void UnassignOverflow(int limit) {
       for (var i = 0; i < limit && _workplace.Overstaffed; i++) {
-        _workplace.UnassignWorkerIfNonworking();
+        Access.Invoke(_workplace, "UnassignWorkerIfNonworking");
       }
     }
 

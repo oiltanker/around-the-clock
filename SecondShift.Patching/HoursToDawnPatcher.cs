@@ -4,7 +4,6 @@ using SecondShift.Core;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using Timberborn.BeaverBehavior;
 using Timberborn.NeedBehaviorSystem;
 using Timberborn.SleepSystem;
 using Timberborn.TimeSystem;
@@ -18,11 +17,18 @@ namespace SecondShift.Patching {
         AccessTools.Method(typeof(IDayNightCycle), nameof(IDayNightCycle.HoursToNextStartOf),
                            new[] { typeof(TimeOfDay) });
 
+    private static readonly MethodInfo HoursToNextHour =
+        AccessTools.Method(AccessTools.TypeByName("Timberborn.TimeSystem.DayNightCycle"),
+                           "HoursToNextHour");
+
     public static float Adjust(float original, Sleeper sleeper) {
       if (sleeper.GetComponent<TwoShiftsWorkingHours>() is { } twoShiftsWorkingHours
           && twoShiftsWorkingHours.NeedsWakeAdjust()) {
-        return DayNightCycle.HoursToNextHour(twoShiftsWorkingHours.WakeHour,
-                                             sleeper._dayNightCycle.HoursPassedToday);
+        var dayNightCycle = (IDayNightCycle)Access.GetField(sleeper, "_dayNightCycle");
+        return (float)HoursToNextHour.Invoke(null, new object[] {
+            (float)twoShiftsWorkingHours.WakeHour,
+            dayNightCycle.HoursPassedToday
+        });
       }
 
       return original;
@@ -33,9 +39,9 @@ namespace SecondShift.Patching {
       yield return AccessTools.Method(typeof(Sleeper),
                                       nameof(Sleeper.CalculateWakeUpTimestamp));
 
-      yield return AccessTools.Method(typeof(BeaverNeedBehaviorPicker),
-                                      nameof(BeaverNeedBehaviorPicker.GetBestNeedBehavior),
-                                      new[] { typeof(NeedFilter) });
+      yield return AccessTools.Method(
+          AccessTools.TypeByName("Timberborn.BeaverBehavior.BeaverNeedBehaviorPicker"),
+          "GetBestNeedBehavior", new[] { typeof(NeedFilter) });
     }
 
     [UsedImplicitly]

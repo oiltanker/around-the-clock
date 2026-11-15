@@ -13,11 +13,13 @@ namespace SecondShift.Patching;
 [UsedImplicitly]
 internal class DwellerHomeAssignerPatcher
 {
+	// AutoAssignableDwelling is internal: access it as object via reflection.
 	[UsedImplicitly]
-	public static bool Prefix(AutoAssignableDwelling dwelling, IEnumerable<Beaver> primaryBeavers, IEnumerable<Beaver> secondaryBeavers, ref bool __result)
+	public static bool Prefix(object __instance, IEnumerable<Beaver> primaryBeavers, IEnumerable<Beaver> secondaryBeavers, ref bool __result)
 	{
 		bool result = true;
-		if (dwelling._dwelling.AdultSlots == 2 && dwelling._dwelling.FreeAdultSlots == 1)
+		var dwelling = (Dwelling)Access.GetField(__instance, "_dwelling");
+		if (dwelling.AdultSlots == 2 && dwelling.FreeAdultSlots == 1)
 		{
 			foreach (Beaver item in primaryBeavers.Concat(secondaryBeavers))
 			{
@@ -26,7 +28,7 @@ internal class DwellerHomeAssignerPatcher
 				{
 					continue;
 				}
-				Dweller? obj = dwelling._dwelling.AdultDwellers.FirstOrDefault();
+				Dweller? obj = dwelling.AdultDwellers.FirstOrDefault();
 				TwoShiftsWorkingHours twoShiftsWorkingHours = ((obj != null) ? ((BaseComponent)obj).GetComponent<TwoShiftsWorkingHours>() : null);
 				if (twoShiftsWorkingHours == null)
 				{
@@ -35,9 +37,9 @@ internal class DwellerHomeAssignerPatcher
 				Dweller component2 = ((BaseComponent)item).GetComponent<Dweller>();
 				if (component.GoesToSleepTogetherWith(twoShiftsWorkingHours))
 				{
-					if (component2.IsLookingForBetterHome() && dwelling.CanAssignDweller(component2))
+					if (component2.IsLookingForBetterHome() && (bool)Access.Invoke(__instance, "CanAssignDweller", component2))
 					{
-						dwelling.AssignDweller(component2);
+						Access.Invoke(__instance, "AssignDweller", component2);
 						__result = true;
 						return false;
 					}

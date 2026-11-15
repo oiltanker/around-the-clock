@@ -1,6 +1,7 @@
 using SecondShift.Core;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Timberborn.BaseComponentSystem;
 using Timberborn.Bots;
 using Timberborn.Characters;
@@ -36,11 +37,11 @@ namespace SecondShift.CoreUI {
     private static readonly string DecreaseWorkersKey = "DecreaseWorkers";
     private static readonly string ToggleWorkerTypeKey = "ToggleWorkerType";
     private readonly VisualElementLoader _visualElementLoader;
-    private readonly WorkerViewFactory _workerViewFactory;
+    private readonly object _workerViewFactory;
     private readonly EntitySelectionService _entitySelectionService;
     private readonly ILoc _loc;
     private readonly ITooltipRegistrar _tooltipRegistrar;
-    private readonly WorkplacePriorityToggleGroupFactory _workplacePriorityToggleGroupFactory;
+    private readonly object _workplacePriorityToggleGroupFactory;
     private readonly BotPopulation _botPopulation;
     private readonly WorkerTypeToggleFactory _workerTypeToggleFactory;
     private readonly BindableButtonFactory _bindableButtonFactory;
@@ -56,7 +57,7 @@ namespace SecondShift.CoreUI {
     private Workplace _workplace;
     private TwoShiftsWorkplace _twoShiftsWorkplace;
     private WorkplaceDescriber _workplaceDescriber;
-    private readonly List<WorkerView> _views = new();
+    private readonly List<WorkerViewRef> _views = new();
     private PriorityToggleGroup _priorityToggleGroup;
 
     public TwoShiftsWorkplaceFragment(
@@ -94,9 +95,8 @@ namespace SecondShift.CoreUI {
                                                  DecreaseWorkersKey,
                                                  () => _workplace.DecreaseDesiredWorkers());
       var visualElement = _root.Q<VisualElement>("HeaderWrapper");
-      _priorityToggleGroup =
-          _workplacePriorityToggleGroupFactory.Create(visualElement,
-                                                      PriorityLabelLocKey);
+      _priorityToggleGroup = (PriorityToggleGroup)Reflection.Invoke(
+          _workplacePriorityToggleGroupFactory, "Create", visualElement, PriorityLabelLocKey);
       _tooltipRegistrar.RegisterLocalizable(visualElement.Q<VisualElement>("TogglesWrapper"),
                                             PriorityTooltipLocKey);
       _workerTypeToggle = _workerTypeToggleFactory.CreateBindable(
@@ -196,7 +196,7 @@ namespace SecondShift.CoreUI {
     }
 
     private void AddEmptyView(WorkplaceWorkerType workplaceWorkerType) {
-      var workerView = _workerViewFactory.Create(workplaceWorkerType);
+      var workerView = WorkerViewRef.Create(_workerViewFactory, workplaceWorkerType);
       workerView.ShowEmpty();
       _views.Add(workerView);
       _workplaceUsers.Add(workerView.Root);
@@ -326,5 +326,70 @@ namespace SecondShift.CoreUI {
       // Legacy UXML toggle is hidden; dropdown drives the state.
     }
 
+    // WorkerView is internal: late-bound wrapper around the reflected instance.
+    internal readonly struct WorkerViewRef {
+      private static MethodInfo _create;
+      private static MethodInfo _showEmpty;
+      private static MethodInfo _showVacant;
+      private static MethodInfo _fill;
+      private static PropertyInfo _root;
+      private readonly object _view;
+
+      private WorkerViewRef(object view) {
+        _view = view;
+      }
+
+      public static WorkerViewRef Create(object factory, WorkplaceWorkerType workerType) {
+        if (_create == null) {
+          _create = factory.GetType().GetMethod("Create");
+        }
+        return new WorkerViewRef(_create.Invoke(factory, new object[] { workerType }));
+      }
+
+      public VisualElement Root {
+        get {
+          if (_root == null) {
+            _root = _view.GetType().GetProperty("Root");
+          }
+          return (VisualElement)_root.GetValue(_view, null);
+        }
+      }
+
+      public void ShowEmpty() {
+        if (_showEmpty == null) {
+          _showEmpty = _view.GetType().GetMethod("ShowEmpty", Type.EmptyTypes);
+        }
+        _showEmpty.Invoke(_view, null);
+      }
+
+      public void ShowVacant() {
+        if (_showVacant == null) {
+          _showVacant = _view.GetType().GetMethod("ShowVacant", Type.EmptyTypes);
+        }
+        _showVacant.Invoke(_view, null);
+      }
+
+      public void Fill(object user, Action onClick, string description) {
+        if (_fill == null) {
+          _fill = _view.GetType().GetMethod("Fill");
+        }
+        _fill.Invoke(_view, new object[] { user, onClick, description });
+      }
+    }
+  }
+
+  // Cached late-bound invocation for internal game methods.
+  internal static class Reflection {
+    private static readonly Dictionary<string, MethodInfo> Methods = new();
+
+    public static object Invoke(object obj, string name, params object[] args) {
+      var key = obj.GetType().FullName + "::" + name;
+      if (!Methods.TryGetValue(key, out var method)) {
+        method = obj.GetType().GetMethod(name,
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        Methods[key] = method;
+      }
+      return method.Invoke(obj, args);
+    }
   }
 }

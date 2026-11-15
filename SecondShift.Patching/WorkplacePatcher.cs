@@ -2,6 +2,7 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using SecondShift.Core;
 using System;
+using Timberborn.Persistence;
 using Timberborn.WorkSystem;
 using Timberborn.WorldPersistence;
 
@@ -15,9 +16,9 @@ namespace SecondShift.Patching {
     [UsedImplicitly]
     public static bool MaxWorkersPrefix(Workplace __instance, ref int __result) {
       var shiftCount = __instance.GetComponent<TwoShiftsWorkplace>().ShiftCount;
-      __result = shiftCount > 0
-          ? __instance._workplaceSpec.MaxWorkers * shiftCount
-          : __instance._workplaceSpec.MaxWorkers;
+      var spec = (WorkplaceSpec)Access.GetField(__instance, "_workplaceSpec");
+      var baseMaxWorkers = spec.MaxWorkers;
+      __result = shiftCount > 0 ? baseMaxWorkers * shiftCount : baseMaxWorkers;
       return false;
     }
 
@@ -25,11 +26,14 @@ namespace SecondShift.Patching {
     [HarmonyPatch(nameof(Workplace.Load))]
     [UsedImplicitly]
     public static bool LoadPrefix(Workplace __instance, IEntityLoader entityLoader) {
-      if (entityLoader.TryGetComponent(Workplace.WorkplaceKey, out var workplace)) {
+      var workplaceKey = Access.GetStatic(typeof(Workplace), "WorkplaceKey");
+      if (entityLoader.TryGetComponent((ComponentKey)workplaceKey, out var workplace)) {
         var twoShiftsWorkplace = __instance.GetComponent<TwoShiftsWorkplace>();
-        var desiredWorkers = workplace.Get(Workplace.DesiredWorkersKey);
+        var desiredWorkers = workplace.Get(
+            (PropertyKey<int>)Access.GetStatic(typeof(Workplace), "DesiredWorkersKey"));
         if (twoShiftsWorkplace.WasLoaded) {
-          __instance.SetDesiredWorkers(Math.Min(desiredWorkers, __instance.MaxWorkers));
+          Access.Invoke(__instance, "SetDesiredWorkers",
+                        Math.Min(desiredWorkers, __instance.MaxWorkers));
         } else {
           twoShiftsWorkplace.SetDesiredWorkersToLoad(desiredWorkers);
         }
@@ -68,13 +72,13 @@ namespace SecondShift.Patching {
 
     private static void IncreaseDesiredWorkers(Workplace workplace) {
       if (workplace.DesiredWorkers < workplace.MaxWorkers) {
-        workplace.SetDesiredWorkers(workplace.DesiredWorkers + 1);
+        Access.Invoke(workplace, "SetDesiredWorkers", workplace.DesiredWorkers + 1);
       }
     }
 
     private static void DecreaseDesiredWorkers(Workplace workplace) {
       if (workplace.DesiredWorkers > 1) {
-        workplace.SetDesiredWorkers(workplace.DesiredWorkers - 1);
+        Access.Invoke(workplace, "SetDesiredWorkers", workplace.DesiredWorkers - 1);
       }
     }
 
