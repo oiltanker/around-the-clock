@@ -14,7 +14,9 @@ namespace AroundTheClock.Core {
                                      IInitializableEntity,
                                      IDuplicable<ShiftWorkplace> {
 
-    private static readonly ComponentKey ShiftWorkplaceKey = new("ShiftWorkplace");
+    // Key string must stay "TwoShiftsWorkplace": saves are keyed by this literal
+    // (original mod + this fork), not by the class name.
+    private static readonly ComponentKey ShiftWorkplaceKey = new("TwoShiftsWorkplace");
     private static readonly PropertyKey<bool> LegacyEnabledKey = new("TwoShiftsEnabled"); // legacy v1.1.1 saves
     private static readonly PropertyKey<int> ShiftCountKey = new("ShiftCount");
 
