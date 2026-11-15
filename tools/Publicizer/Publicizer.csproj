@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Publicizer</AssemblyName>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Mono.Cecil">
+      <HintPath>C:\Users\Oiltanker\AppData\Local\Temp\kilo\ilspy11\pkg4\tools\net8.0\any\Mono.Cecil.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

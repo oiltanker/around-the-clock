@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>SecondShift.Patching</AssemblyName>
+    <LangVersion>10</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SecondShift.Core\SecondShift.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony"><HintPath>$(HarmonyDir)\0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.BaseComponentSystem"><HintPath>$(GameDir)\Timberborn.BaseComponentSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.BeaverBehavior"><HintPath>$(LibDir)\Timberborn.BeaverBehavior.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.Beavers"><HintPath>$(GameDir)\Timberborn.Beavers.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.DwellingSystem"><HintPath>$(LibDir)\Timberborn.DwellingSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.DwellingSystemUI"><HintPath>$(GameDir)\Timberborn.DwellingSystemUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.MechanicalSystem"><HintPath>$(LibDir)\Timberborn.MechanicalSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.TickSystem"><HintPath>$(GameDir)\Timberborn.TickSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.WorkSystemUI"><HintPath>$(LibDir)\Timberborn.WorkSystemUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.ModManagerScene"><HintPath>$(GameDir)\Timberborn.ModManagerScene.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.NeedBehaviorSystem"><HintPath>$(GameDir)\Timberborn.NeedBehaviorSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.Persistence"><HintPath>$(GameDir)\Timberborn.Persistence.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.PowerGeneration"><HintPath>$(LibDir)\Timberborn.PowerGeneration.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.SleepSystem"><HintPath>$(LibDir)\Timberborn.SleepSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.TimeSystem"><HintPath>$(LibDir)\Timberborn.TimeSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.WorkSystem"><HintPath>$(LibDir)\Timberborn.WorkSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.WorldPersistence"><HintPath>$(GameDir)\Timberborn.WorldPersistence.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameDir)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>
+
+
+
+
+
+

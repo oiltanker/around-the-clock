@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>SecondShift.CoreUI</AssemblyName>
+    <LangVersion>10</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SecondShift.Core\SecondShift.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Timberborn.WorldPersistence"><HintPath>$(GameDir)\Timberborn.WorldPersistence.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.DuplicationSystem"><HintPath>$(GameDir)\Timberborn.DuplicationSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.BlockSystem"><HintPath>$(GameDir)\Timberborn.BlockSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Bindito.Core"><HintPath>$(GameDir)\Bindito.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Bindito.Unity"><HintPath>$(GameDir)\Bindito.Unity.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.AssetSystem"><HintPath>$(GameDir)\Timberborn.AssetSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.BaseComponentSystem"><HintPath>$(GameDir)\Timberborn.BaseComponentSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.Bots"><HintPath>$(GameDir)\Timberborn.Bots.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.Characters"><HintPath>$(GameDir)\Timberborn.Characters.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.Common"><HintPath>$(GameDir)\Timberborn.Common.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.CoreUI"><HintPath>$(GameDir)\Timberborn.CoreUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.EntityPanelSystem"><HintPath>$(GameDir)\Timberborn.EntityPanelSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.GameDistricts"><HintPath>$(GameDir)\Timberborn.GameDistricts.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.InputSystemUI"><HintPath>$(LibDir)\Timberborn.InputSystemUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.Localization"><HintPath>$(GameDir)\Timberborn.Localization.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.PrioritySystem"><HintPath>$(GameDir)\Timberborn.PrioritySystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.PrioritySystemUI"><HintPath>$(LibDir)\Timberborn.PrioritySystemUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.TickSystem"><HintPath>$(GameDir)\Timberborn.TickSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.SelectionSystem"><HintPath>$(GameDir)\Timberborn.SelectionSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.SliderToggleSystem"><HintPath>$(GameDir)\Timberborn.SliderToggleSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.TimeSystem"><HintPath>$(LibDir)\Timberborn.TimeSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.TooltipSystem"><HintPath>$(GameDir)\Timberborn.TooltipSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.WorkSystem"><HintPath>$(LibDir)\Timberborn.WorkSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.WorkSystemUI"><HintPath>$(LibDir)\Timberborn.WorkSystemUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Timberborn.WorkerTypesUI"><HintPath>$(GameDir)\Timberborn.WorkerTypesUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameDir)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UIElementsModule"><HintPath>$(GameDir)\UnityEngine.UIElementsModule.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>
+
+
+

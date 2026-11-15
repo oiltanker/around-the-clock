@@ -1,0 +1,6 @@
+bin/
+obj/
+lib_public/
+tools/Publicizer/bin/
+tools/Publicizer/obj/
+*.user
