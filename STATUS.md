@@ -1,19 +1,36 @@
 # Status
 
-**State: fixed (access-visibility), rebuilt, redeployed, awaiting in-game testing.** (2026-11-15)
+**State: working in game (loads, unpause stable, 3-shift UI live).** (2026-11-15)
 
-## 2026-11-15 crash and fix
+## History of crashes and fixes (all resolved)
 
-First in-game test crashed on save load: `MethodAccessException` — the mod called
-internal game APIs that are public only in our publicized compile-time references
-(`WorkplacePriorityToggleGroupFactory.Create` plus 33 more accesses found by the
-new `tools/AccessAudit` Cecil checker).
+1. **MethodAccessException on save load** — mod compiled against publicized refs called
+   internal game APIs (34 accesses, found by `tools/AccessAudit`). Fix attempt 1:
+   `tools/AccessInjector` injects `[assembly: IgnoresAccessChecksTo]` — **works in .NET
+   but Unity Mono 1.1.2.8 ignores the attribute** (verified: crash persisted with
+   attribute attached). Fix (final): all flagged sites rewritten with cached reflection
+   (`SecondShift.Core/Access.cs`); audit now reports only `BaseComponent::.ctor`
+   family-access false positives.
+2. **ReflectionTypeLoadException (System.Private.CoreLib 8.0)** — injector leaked
+   .NET 8 corelib refs; fixed by scoping injected refs to the module's core library
+   (netstandard).
+3. **NullReferenceException on unpause** — `DwellerHomeAssigner.AssignDweller` is
+   *static*; prefix used `__instance` (null for static targets). Fixed: bind the
+   `dwelling` parameter by name.
 
-Fix: `tools/AccessInjector` post-build step injects
-`[assembly: IgnoresAccessChecksTo("Timberborn.*")]` (attribute type defined in-module)
-into all three DLLs — the same mechanism used by ChooChoo, SmartPower, XRay, TimberUi,
-ModdableTimberborn, etc. Their DLLs all carry the attribute; none of eMka's do
-(upstream Second Shift is presumably broken on game 1.1.2.8 for the same reason).
+## UI (2026-11-15)
+
+- Shift-mode selector: game-native `Timberborn.DropdownSystem` `Dropdown`
+  (DropdownListDrawer + DropdownItemsSetter + `ShiftModeDropdownProvider`), label
+  `SecondShift.ShiftMode`; replaces the unstyled Unity DropdownField.
+- Shift viewer tooltips: fixed loop-variable closure bug (was always `ShowShift4`);
+  names localized as "Show morning/afternoon/night shift" (enUS/plPL/ukUA;
+  ukUA dropdown labels translated too).
+- Midday icon: `version-1.1\Assets\midday-shift.png` (70% original sun top-left +
+  cloud with rounded solid base, 4x supersampled; generator script uses
+  `assets\first-shift-ref.png` extracted from the mod's own asset bundle).
+  Loaded at runtime via ImageConversion + Sprite.Create (pivot 0.5, PPU 100);
+  moon fallback if missing. Shift 3 reuses the bundle's `second-shift` moon.
 
 ## Deployed artifacts
 
@@ -21,9 +38,11 @@ ModdableTimberborn, etc. Their DLLs all carry the attribute; none of eMka's do
 
 | File | SHA256 |
 |---|---|
-| SecondShift.Core.dll | 76771AE3B2E093FBAD8596DD31EFD96CE0630E670CA513A0693BF5CFB4AAB901 |
-| SecondShift.CoreUI.dll | ECC619BD48C9BF96E1084A93A9CED057432C57114CF92066EDB4D5C7A387CE9A |
-| SecondShift.Patching.dll | C6919F912C2DF14547E69973EAEEBBEA491022EDB703B709FE546DAE7612B170 |
+| SecondShift.Core.dll | A1360FF08AC0E86014E13ADBCEF9645756B579E60CD6F56FF410669AC6EEDF0B |
+| SecondShift.CoreUI.dll | 4EB557760FC12D737B13D71A87111CFE5CE0D7EF44CACF2329192AF1A72719B4 |
+| SecondShift.Patching.dll | 915975C46D4B398DF475E77EBA5E6285C77AEFEBD387129AE75F0E82F842107F |
+
+`version-1.1\Assets\midday-shift.png` ships the midday icon (runtime-loaded, not hashed).
 
 Build: all three assemblies compile with 0 errors (warnings: CS2002 duplicate AssemblyAttributes
 in obj, CS8632 nullable annotation in recovered DwellerHomeAssignerPatcher).
@@ -55,8 +74,8 @@ Verified:
 
 ## Open items / known risks
 
-- DropdownField is not a stock control in the entity panel USS — may look unstyled but functional.
 - Sleep-window overlap assumes vanilla beavers sleep 22–6; game sleep onset is need-driven,
   so real overlap can vary by +-1h. Threshold 6h is a compromise; see CHANGES.md.
-- Not yet tested in game: dropdown rendering, 3-shift handover at 8:00/16:00/24:00,
-  wake-time transpiler in 3-shift mode, housing pairing churn.
+- Verified in game: mod load, save load, unpause (housing patch), native dropdown,
+  3-shift selection, shift icons/tooltips. Longer sessions may still surface issues
+  (3-shift handover at 8:00/16:00, wake-time transpiler under load, housing churn).
