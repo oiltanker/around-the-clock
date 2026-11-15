@@ -34,22 +34,35 @@ namespace AroundTheClock.CoreUI {
       _dayNightCycle = dayNightCycle;
     }
 
+    private VisualElement _parent;
+    private int _builtCount = -1;
+
     public void Initialize(VisualElement parent) {
-      parent.Clear();
-      var shiftCount = ShiftCount;
+      _parent = parent;
+      Rebuild();
+    }
+
+    private void Rebuild() {
+      _parent.Clear();
       var items = new List<SliderToggleItem>();
-      for (var shift = 0; shift < shiftCount; shift++) {
+      for (var shift = 0; shift < ShiftCount; shift++) {
         var index = shift;
         items.Add(SliderToggleItem.Create(new Func<string>(() => GetTooltip(index)), GetIcon(shift),
                                            new Action(() => SelectShift(index)),
                                            new Func<bool>(() => SelectedShift == index)));
       }
-      _sliderToggle = _sliderToggleFactory.Create(parent, items.ToArray());
+      _sliderToggle = _sliderToggleFactory.Create(_parent, items.ToArray());
+      _builtCount = ShiftCount;
     }
 
     public void Open(ShiftWorkplace shiftWorkplace) {
       ShiftCount = shiftWorkplace.ShiftCount;
-      if (shiftWorkplace.ShiftCount > 0) {
+      if (ShiftCount > 0) {
+        // Fragment setup builds the bar before any workplace is bound
+        // (ShiftCount 0), so rebuild whenever the built count is stale.
+        if (_builtCount != ShiftCount) {
+          Rebuild();
+        }
         Show();
       } else {
         Hide();
