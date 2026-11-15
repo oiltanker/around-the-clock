@@ -128,7 +128,21 @@ namespace SecondShift.CoreUI {
           }));
       toggleParent.Insert(0, _shiftModeDropdown);
 
-      _twoShiftsWorkersToggle.Initialize(_root.Q<VisualElement>("TwoShiftsWorkersToggleWrapper"));
+      // Give the shift-viewer bar its own full-width row: sharing the row with
+      // the flexed dropdown squeezes three buttons.
+      var barWrapper = _root.Q<VisualElement>("TwoShiftsWorkersToggleWrapper");
+      var oldRow = barWrapper.parent;
+      var barRow = new VisualElement();
+      barRow.style.flexDirection = FlexDirection.Row;
+      barRow.style.justifyContent = Justify.Center;
+      barRow.style.marginTop = 2;
+      oldRow.parent.Insert(oldRow.parent.IndexOf(oldRow) + 1, barRow);
+      oldRow.Remove(barWrapper);
+      barRow.Add(barWrapper);
+      // Cancel any stylesheet-fixed width so the bar grows with its buttons.
+      barWrapper.style.width = new StyleLength(StyleKeyword.Initial);
+      barWrapper.style.maxWidth = new StyleLength(StyleKeyword.Initial);
+      _twoShiftsWorkersToggle.Initialize(barWrapper);
       _root.ToggleDisplayStyle(false);
       return _root;
     }

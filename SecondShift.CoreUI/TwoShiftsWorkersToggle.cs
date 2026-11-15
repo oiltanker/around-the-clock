@@ -104,16 +104,18 @@ namespace SecondShift.CoreUI {
       };
     }
 
-    // Midday icon ships as a loose PNG (Assets/midday-shift.png) next to the
-    // mod's version folder; asset bundles are the official channel but need
-    // a Unity Editor build, so we load the single sprite at runtime instead.
+    // Midday icon ships as a loose PNG (Assets/midday-shift.png) in the mod
+    // folder; asset bundles are the official channel but need a Unity Editor
+    // build, so we load the single sprite at runtime instead. Mods are
+    // byte-loaded (Assembly.Location is empty), so fall back to searching the
+    // standard mod locations.
     private Sprite LoadMiddaySprite() {
       if (_middaySprite != null) {
         return _middaySprite;
       }
       try {
-        var dllDir = Path.GetDirectoryName(typeof(TwoShiftsWorkersToggle).Assembly.Location);
-        var path = Path.Combine(dllDir, "..", "Assets", "midday-shift.png");
+        var path = FindMiddayIconPath()
+            ?? throw new FileNotFoundException("midday-shift.png not found in known mod locations");
         var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
         if (!texture.LoadImage(File.ReadAllBytes(path))) {
           throw new IOException("LoadImage failed");
@@ -125,6 +127,46 @@ namespace SecondShift.CoreUI {
         _middaySprite = _assetLoader.Load<Sprite>("UI/Images/Game/second-shift");
       }
       return _middaySprite;
+    }
+
+    private static string FindMiddayIconPath() {
+      const string fileName = "midday-shift.png";
+      var candidates = new List<string>();
+      try {
+        var location = typeof(TwoShiftsWorkersToggle).Assembly.Location;
+        if (!string.IsNullOrEmpty(location)) {
+          var dir = Path.GetDirectoryName(location);
+          candidates.Add(Path.GetFullPath(Path.Combine(dir, "..", "Assets", fileName)));
+          for (var parent = Directory.GetParent(dir); parent != null; parent = parent.Parent) {
+            candidates.Add(Path.Combine(parent.FullName, "Assets", fileName));
+          }
+        }
+      } catch {
+        // path probing is best-effort
+      }
+      var localMods = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                                   "Timberborn", "Mods");
+      TryAddLocalCandidates(candidates, localMods, fileName);
+      TryAddLocalCandidates(candidates,
+                            Path.Combine(@"C:\Program Files (x86)\Steam",
+                                         "steamapps", "workshop", "content", "1062140"),
+                            fileName);
+      return candidates.Find(File.Exists);
+    }
+
+    private static void TryAddLocalCandidates(List<string> candidates, string root, string fileName) {
+      try {
+        if (!Directory.Exists(root)) {
+          return;
+        }
+        foreach (var modDir in Directory.EnumerateDirectories(root)) {
+          foreach (var versionDir in Directory.EnumerateDirectories(modDir, "version-*")) {
+            candidates.Add(Path.Combine(versionDir, "Assets", fileName));
+          }
+        }
+      } catch {
+        // path probing is best-effort
+      }
     }
 
   }
