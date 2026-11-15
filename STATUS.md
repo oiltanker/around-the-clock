@@ -71,6 +71,43 @@ Verified:
 - Housing: same-scheme pairs require same shift index; cross-scheme/vanilla pairing requires
   sleep-window overlap >= 6h (vanilla window 22–8).
 
+## Sleep-overlap rule — behavior analysis (2026-11-15, decompile-verified)
+
+What `GoesToSleepTogetherWith` gates (only these two sites):
+1. `DwellerHomeAssignerPatcher` — lodges (2 adult slots) with exactly one free adult
+   slot: first *compatible* candidate is assigned directly; an *incompatible* candidate
+   that already has a home aborts that assignment tick; an *incompatible homeless*
+   candidate falls through to vanilla first-fit and is assigned anyway (housing need
+   beats schedule purity).
+2. `DwellerPatcher` (`IsLookingForBetterHome`) — a resident of a *full* lodge with an
+   incompatible roommate is flagged as permanently house-hunting, so mismatched pairs
+   self-sort over time.
+
+Facts about the game (decompiled `Timberborn.SleepSystem` / `Reproduction` /
+`DwellingSystem` / `TimeSystem`):
+- Sleep is need-driven: onset = when the Sleep need gets low; wake = restored ±
+  random jitter, or the wake target (dawn vanilla; shift start for our workers via
+  the wake transpiler). Fixed windows in `GetSleepWindow()` are idealizations; the
+  6h threshold is slack. Under heavy work/commutes the drift can exceed 1h.
+- `ProcreationHouse` (only birth mechanism): kit spawns when any procreatable adult
+  ENTERS a dwelling that has a free child slot and another adult merely ASSIGNED to
+  it (presence/sleep not consulted), 18.75% chance. Sleep schedules are never
+  consulted -> the rule does not affect breeding mechanics directly.
+- Vanilla `AssignDweller` has NO schedule check (everyone shares the day rhythm);
+  dwellings' Enterable capacity fits all occupants, so mismatched sleepers never
+  hard-block each other.
+
+Practical effects (all soft):
+- Household day/night coherence (cosmetic: who is home at which hours).
+- Relocation churn while mismatched households sort themselves (extra walking only).
+- Transiently slower two-adult household formation in housing surplus (blocked
+  relocators) -> marginally slower kit spawns there; unaffected under housing pressure.
+- Known modeling quirk: on the game's dawn-anchored internal clock the 3-shift
+  windows coincide with the WORK blocks; same-scheme outcomes don't depend on this
+  (index equality), but cross-scheme mixing is coarser than intended (errs toward
+  segregation, never bad pairings). Revisit `GetSleepWindow` values if mixed pairing
+  feels too restrictive; the 6h threshold itself is fine.
+
 ## Compatibility
 
 - Conflicts: original Second Shift (both Harmony-patch `Workplace`, `WorkerWorkingHours`),
