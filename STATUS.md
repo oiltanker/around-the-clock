@@ -1,6 +1,19 @@
 # Status
 
-**State: built, deployed, awaiting in-game testing.** (2026-11-15)
+**State: fixed (access-visibility), rebuilt, redeployed, awaiting in-game testing.** (2026-11-15)
+
+## 2026-11-15 crash and fix
+
+First in-game test crashed on save load: `MethodAccessException` — the mod called
+internal game APIs that are public only in our publicized compile-time references
+(`WorkplacePriorityToggleGroupFactory.Create` plus 33 more accesses found by the
+new `tools/AccessAudit` Cecil checker).
+
+Fix: `tools/AccessInjector` post-build step injects
+`[assembly: IgnoresAccessChecksTo("Timberborn.*")]` (attribute type defined in-module)
+into all three DLLs — the same mechanism used by ChooChoo, SmartPower, XRay, TimberUi,
+ModdableTimberborn, etc. Their DLLs all carry the attribute; none of eMka's do
+(upstream Second Shift is presumably broken on game 1.1.2.8 for the same reason).
 
 ## Deployed artifacts
 
@@ -8,9 +21,9 @@
 
 | File | SHA256 |
 |---|---|
-| SecondShift.Core.dll | 513A3863621AE3193D755619F9D382B8DD56E85C63901A2D40BF219D14156C92 |
-| SecondShift.CoreUI.dll | 9CE8F529B4196093DE3D6FDD7C27AED03E9B328D15E3D49381B14E34594D0018 |
-| SecondShift.Patching.dll | FF85B5250A7751B0D41FC4B930A74CD2D810640DD40BA72E4E4590A42D3F7E19 |
+| SecondShift.Core.dll | 76771AE3B2E093FBAD8596DD31EFD96CE0630E670CA513A0693BF5CFB4AAB901 |
+| SecondShift.CoreUI.dll | ECC619BD48C9BF96E1084A93A9CED057432C57114CF92066EDB4D5C7A387CE9A |
+| SecondShift.Patching.dll | C6919F912C2DF14547E69973EAEEBBEA491022EDB703B709FE546DAE7612B170 |
 
 Build: all three assemblies compile with 0 errors (warnings: CS2002 duplicate AssemblyAttributes
 in obj, CS8632 nullable annotation in recovered DwellerHomeAssignerPatcher).
