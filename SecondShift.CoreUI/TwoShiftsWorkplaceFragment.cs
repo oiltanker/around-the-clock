@@ -6,6 +6,7 @@ using Timberborn.BaseComponentSystem;
 using Timberborn.Bots;
 using Timberborn.Characters;
 using Timberborn.CoreUI;
+using Timberborn.DropdownSystem;
 using Timberborn.EntityPanelSystem;
 using Timberborn.GameDistricts;
 using Timberborn.InputSystemUI;
@@ -45,6 +46,8 @@ namespace SecondShift.CoreUI {
     private readonly BotPopulation _botPopulation;
     private readonly WorkerTypeToggleFactory _workerTypeToggleFactory;
     private readonly BindableButtonFactory _bindableButtonFactory;
+    private readonly DropdownListDrawer _dropdownListDrawer;
+    private readonly DropdownItemsSetter _dropdownItemsSetter;
     private readonly TwoShiftsWorkersToggle _twoShiftsWorkersToggle;
     private VisualElement _root;
     private VisualElement _workplaceUsers;
@@ -52,7 +55,7 @@ namespace SecondShift.CoreUI {
     private BindableButton _increase;
     private BindableButton _decrease;
     private Toggle _twoShiftsEnabledToggle;
-    private DropdownField _shiftModeDropdown;
+    private Dropdown _shiftModeDropdown;
     private WorkerTypeToggle _workerTypeToggle;
     private Workplace _workplace;
     private TwoShiftsWorkplace _twoShiftsWorkplace;
@@ -70,6 +73,8 @@ namespace SecondShift.CoreUI {
         BotPopulation botPopulation,
         WorkerTypeToggleFactory workerTypeToggleFactory,
         BindableButtonFactory bindableButtonFactory,
+        DropdownListDrawer dropdownListDrawer,
+        DropdownItemsSetter dropdownItemsSetter,
         TwoShiftsWorkersToggle twoShiftsWorkersToggle) {
       _visualElementLoader = visualElementLoader;
       _workerViewFactory = workerViewFactory;
@@ -80,6 +85,8 @@ namespace SecondShift.CoreUI {
       _botPopulation = botPopulation;
       _workerTypeToggleFactory = workerTypeToggleFactory;
       _bindableButtonFactory = bindableButtonFactory;
+      _dropdownListDrawer = dropdownListDrawer;
+      _dropdownItemsSetter = dropdownItemsSetter;
       _twoShiftsWorkersToggle = twoShiftsWorkersToggle;
     }
 
@@ -108,13 +115,17 @@ namespace SecondShift.CoreUI {
       // Replace the fixed UXML toggle with a 3-way dropdown: Regular / 2 / 3 shifts.
       var toggleParent = _twoShiftsEnabledToggle.parent;
       _twoShiftsEnabledToggle.style.display = DisplayStyle.None;
-      var choices = new List<string> {
-          _loc.T(ModeRegularLocKey),
-          _loc.T(ModeTwoShiftsLocKey),
-          _loc.T(ModeThreeShiftsLocKey)
-      };
-      _shiftModeDropdown = new DropdownField(_loc.T(ShiftModeLocKey), choices, 0);
-      _shiftModeDropdown.RegisterValueChangedCallback(ShiftModeChanged);
+      _shiftModeDropdown = new Dropdown();
+      _shiftModeDropdown.Initialize(_dropdownListDrawer);
+      _shiftModeDropdown.OverrideLabelLocKey(ShiftModeLocKey);
+      _dropdownItemsSetter.SetItems(_shiftModeDropdown, new ShiftModeDropdownProvider(
+          new[] { _loc.T(ModeRegularLocKey), _loc.T(ModeTwoShiftsLocKey), _loc.T(ModeThreeShiftsLocKey) },
+          () => _twoShiftsWorkplace?.ShiftCount ?? 0,
+          count => {
+            if (_twoShiftsWorkplace != null) {
+              _twoShiftsWorkplace.SetShiftCount(count);
+            }
+          }));
       toggleParent.Insert(0, _shiftModeDropdown);
 
       _twoShiftsWorkersToggle.Initialize(_root.Q<VisualElement>("TwoShiftsWorkersToggleWrapper"));
@@ -133,8 +144,7 @@ namespace SecondShift.CoreUI {
         AddEmptyViews(component);
         _increase.Bind();
         _decrease.Bind();
-        var dropdownIndex = DropdownIndexFor(_twoShiftsWorkplace.ShiftCount);
-        _shiftModeDropdown.SetValueWithoutNotify(_shiftModeDropdown.choices[dropdownIndex]);
+        _shiftModeDropdown.UpdateSelectedValue();
         _twoShiftsWorkplace.ShiftCountChanged += OnShiftCountChanged;
         _twoShiftsWorkersToggle.SetShiftCount(_twoShiftsWorkplace.ShiftCount);
         _twoShiftsWorkersToggle.Open(_twoShiftsWorkplace);
@@ -287,8 +297,7 @@ namespace SecondShift.CoreUI {
 
     private void OnShiftCountChanged(object sender, EventArgs e) {
       var shiftCount = _twoShiftsWorkplace.ShiftCount;
-      var dropdownIndex = DropdownIndexFor(shiftCount);
-      _shiftModeDropdown.SetValueWithoutNotify(_shiftModeDropdown.choices[dropdownIndex]);
+      _shiftModeDropdown.UpdateSelectedValue();
       AddEmptyViews(_workplace.GetComponent<WorkplaceWorkerType>());
       if (shiftCount > 0) {
         _twoShiftsWorkersToggle.SetShiftCount(shiftCount);
@@ -298,28 +307,6 @@ namespace SecondShift.CoreUI {
       } else {
         _twoShiftsWorkersToggle.Hide();
       }
-    }
-
-    private static int DropdownIndexFor(int shiftCount) {
-      return shiftCount switch {
-          0 => RegularMode,
-          2 => TwoShiftsMode,
-          3 => ThreeShiftsMode,
-          _ => RegularMode
-      };
-    }
-
-    private static int ShiftCountForIndex(int dropdownIndex) {
-      return dropdownIndex switch {
-          TwoShiftsMode => 2,
-          ThreeShiftsMode => 3,
-          _ => 0
-      };
-    }
-
-    private void ShiftModeChanged(ChangeEvent<string> evt) {
-      var index = _shiftModeDropdown.index;
-      _twoShiftsWorkplace.SetShiftCount(ShiftCountForIndex(index));
     }
 
     private void ToggleTwoShifts(ChangeEvent<bool> evt) {
