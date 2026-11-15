@@ -1,6 +1,7 @@
 using SecondShift.Core;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Timberborn.AssetSystem;
 using Timberborn.Common;
 using Timberborn.CoreUI;
@@ -18,6 +19,7 @@ namespace SecondShift.CoreUI {
     private readonly IAssetLoader _assetLoader;
     private readonly IDayNightCycle _dayNightCycle;
     private SliderToggle _sliderToggle;
+    private Sprite _middaySprite;
 
     public int SelectedShift { get; private set; }
     public int ShiftCount { get; private set; }
@@ -38,7 +40,7 @@ namespace SecondShift.CoreUI {
       var items = new List<SliderToggleItem>();
       for (var shift = 0; shift < shiftCount; shift++) {
         var index = shift;
-        items.Add(SliderToggleItem.Create(new Func<string>(() => GetTooltip(shift)), GetIcon(shift),
+        items.Add(SliderToggleItem.Create(new Func<string>(() => GetTooltip(index)), GetIcon(shift),
                                            new Action(() => SelectShift(index)),
                                            new Func<bool>(() => SelectedShift == index)));
       }
@@ -96,23 +98,33 @@ namespace SecondShift.CoreUI {
     private Sprite GetIcon(int shift) {
       return shift switch {
           0 => _assetLoader.Load<Sprite>("UI/Images/Game/first-shift"),
-          1 => _assetLoader.Load<Sprite>("UI/Images/Game/second-shift"),
-          _ => CreateFallbackIcon(shift)
+          1 when ShiftCount == 2 => _assetLoader.Load<Sprite>("UI/Images/Game/second-shift"),
+          1 => LoadMiddaySprite(),
+          _ => _assetLoader.Load<Sprite>("UI/Images/Game/second-shift")
       };
     }
 
-    // Third shift has no shipped sprite; generate a simple colored icon.
-    private static Sprite CreateFallbackIcon(int shift) {
-      const int size = 64;
-      var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
-      var colors = new Color32[size * size];
-      var color = new Color32(0x9B, 0x22, 0xD9, 0xFF); // purple
-      for (var i = 0; i < colors.Length; i++) {
-        colors[i] = color;
+    // Midday icon ships as a loose PNG (Assets/midday-shift.png) next to the
+    // mod's version folder; asset bundles are the official channel but need
+    // a Unity Editor build, so we load the single sprite at runtime instead.
+    private Sprite LoadMiddaySprite() {
+      if (_middaySprite != null) {
+        return _middaySprite;
       }
-      texture.SetPixels32(colors);
-      texture.Apply();
-      return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
+      try {
+        var dllDir = Path.GetDirectoryName(typeof(TwoShiftsWorkersToggle).Assembly.Location);
+        var path = Path.Combine(dllDir, "..", "Assets", "midday-shift.png");
+        var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        if (!texture.LoadImage(File.ReadAllBytes(path))) {
+          throw new IOException("LoadImage failed");
+        }
+        _middaySprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
+                                      new Vector2(0.5f, 0.5f), 100f);
+      } catch (Exception e) {
+        Debug.LogWarning($"[SecondShift] midday-shift.png load failed, using moon fallback: {e.Message}");
+        _middaySprite = _assetLoader.Load<Sprite>("UI/Images/Game/second-shift");
+      }
+      return _middaySprite;
     }
 
   }

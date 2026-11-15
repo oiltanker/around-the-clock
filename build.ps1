@@ -52,5 +52,7 @@ if ($Deploy) {
   foreach ($dll in $dlls) {
     Copy-Item $dll $scriptsDir -Force
   }
+  New-Item -ItemType Directory -Force (Join-Path $scriptsDir '..\Assets') | Out-Null
+  Copy-Item (Join-Path $root 'assets\midday-shift.png') (Join-Path $scriptsDir '..\Assets\midday-shift.png') -Force
   Get-ChildItem $scriptsDir | Select-Object Name
 }
