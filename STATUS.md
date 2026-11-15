@@ -41,7 +41,7 @@
 
 `..\second-shift-3shifts_5522813_1.1.1.0\version-1.1\Scripts\`:
 
-| File | SHA256 (build 2026-11-15 18:52) |
+| File | SHA256 (build 2026-11-15 19:31, "Around The Clock" rename) |
 |---|---|
 | AroundTheClock.Core.dll | 27435895C6D934DACD31422BDAA3447E22A9763D9C8105D924CBF6552B133D44 |
 | AroundTheClock.CoreUI.dll | 50F691FDF91B7A54C3DD711BD949ADAEB4C44C944B3ECBEB3F7DE61C2ABB7DD7 |
