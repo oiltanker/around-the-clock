@@ -10,8 +10,11 @@ mod lives at `..\second-shift-3shifts_5522813_1.1.1.0\` (sibling folder).
 build.ps1              build orchestration (publicize -> compile -> optional deploy)
 SecondShift.Core/      game logic components (TwoShiftsWorkplace, TwoShiftsWorkingHours, WorkerPositionFixer)
 SecondShift.Patching/  Harmony patches
-SecondShift.CoreUI/    entity-panel UI (dropdown + shift viewer)
+SecondShift.CoreUI/    entity-panel UI (native dropdown + shift viewer)
 tools/Publicizer/      Cecil tool that makes game assemblies fully public for compile-time use
+tools/AccessAudit/     Cecil audit of non-public game API access (must stay at 3 base-ctor false positives)
+tools/AccessInjector/  post-build IgnoresAccessChecksTo injector (kept for reference; Unity Mono ignores it)
+assets/                midday-shift.png icon + first-shift-ref.png reference sprite
 lib_public/            publicized copies of game assemblies (generated, not committed)
 ```
 
@@ -39,7 +42,8 @@ What `build.ps1` does:
    Unity-publicized assemblies — the mod itself ships no game DLLs).
 2. Builds `SecondShift.Core`, `SecondShift.Patching`, `SecondShift.CoreUI` (netstandard2.1).
 3. With `-Deploy`, copies the three DLLs to
-   `..\second-shift-3shifts_5522813_1.1.1.0\version-1.1\Scripts\`.
+   `..\second-shift-3shifts_5522813_1.1.1.0\version-1.1\Scripts\` and
+   `assets\midday-shift.png` to `version-1.1\Assets\`.
 
 ## Constraints
 

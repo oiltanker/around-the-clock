@@ -30,17 +30,25 @@
   cloud with rounded solid base, 4x supersampled; generator script uses
   `assets\first-shift-ref.png` extracted from the mod's own asset bundle).
   Loaded at runtime via ImageConversion + Sprite.Create (pivot 0.5, PPU 100);
-  moon fallback if missing. Shift 3 reuses the bundle's `second-shift` moon.
+  moon fallback if missing; path discovered by walking up from the byte-loaded
+  assembly plus Documents-Mods and Workshop-content scans. Shift 3 reuses the
+  bundle's `second-shift` moon.
+- Layout: first row = localized "Shift mode" label left, dropdown right
+  (dropdown's internal label hidden — runtime-built dropdowns never get
+  `Localize()`); second row = 3-icon shift bar, right-aligned.
 
 ## Deployed artifacts
 
 `..\second-shift-3shifts_5522813_1.1.1.0\version-1.1\Scripts\`:
 
-| File | SHA256 |
+| File | SHA256 (build 2026-11-15 18:52) |
 |---|---|
-| SecondShift.Core.dll | A1360FF08AC0E86014E13ADBCEF9645756B579E60CD6F56FF410669AC6EEDF0B |
-| SecondShift.CoreUI.dll | 4EB557760FC12D737B13D71A87111CFE5CE0D7EF44CACF2329192AF1A72719B4 |
-| SecondShift.Patching.dll | 915975C46D4B398DF475E77EBA5E6285C77AEFEBD387129AE75F0E82F842107F |
+| SecondShift.Core.dll | 27435895C6D934DACD31422BDAA3447E22A9763D9C8105D924CBF6552B133D44 |
+| SecondShift.CoreUI.dll | 50F691FDF91B7A54C3DD711BD949ADAEB4C44C944B3ECBEB3F7DE61C2ABB7DD7 |
+| SecondShift.Patching.dll | 77D26070158D63143ABEA923CE5ABF441A4521F8479E05248149739042D3DBBE |
+
+Note: DLL hashes change on every rebuild (module GUID/MVID), so treat them as
+per-build fingerprints, not stable identities.
 
 `version-1.1\Assets\midday-shift.png` ships the midday icon (runtime-loaded, not hashed).
 

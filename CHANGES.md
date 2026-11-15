@@ -38,19 +38,32 @@ Harmony id `eMka.SecondShift` -> `eMka.SecondShift.ThreeShifts`.
 ### HoursToDawnPatcher.cs — transpiler unchanged; `Adjust` delegates to
   `NeedsWakeAdjust()/WakeHour` (was hardcoded wake at 12:00 for odd-index workers).
 ### WorkerWorkingHoursPatcher.cs, DwellerPatcher.cs, WorkplaceFragmentPatcher.cs — unchanged.
-### DwellerHomeAssignerPatcher.cs — recovered from the shipped DLL (absent in repo); logic
-  unchanged (calls `GoesToSleepTogetherWith`, which now implements the overlap rule).
+### DwellerHomeAssignerPatcher.cs — recovered from the shipped DLL (absent in repo);
+  logic unchanged (calls `GoesToSleepTogetherWith`, which now implements the overlap
+  rule). One fix on top: `AssignDweller` is static, so the prefix binds the
+  `dwelling` parameter by name instead of the null `__instance`.
 
 ## SecondShift.CoreUI
 
 ### TwoShiftsWorkplaceFragment.cs (rewritten)
-- UXML "Two shifts" toggle hidden; code-built `DropdownField` with choices
-  Regular / Two shifts / Three shifts (loc keys `SecondShift.Mode.*`).
+- UXML "Two shifts" toggle hidden; game-native `Timberborn.DropdownSystem`
+  `Dropdown` (DropdownListDrawer + DropdownItemsSetter + `ShiftModeDropdownProvider`,
+  loc keys `SecondShift.Mode.*`) — the unstyled Unity `DropdownField` from the
+  first iteration was replaced because it ignored game styling.
+- First row: localized `SecondShift.ShiftMode` label left, dropdown right
+  (dropdown's internal label hidden; runtime-built dropdowns never get
+  `Localize()` called on them).
+- Second row: code-built shift-icon bar moved out of the UXML row into its own
+  row, right-aligned; wrapper freed from the dropdown row's flex squeeze.
 - All worker-count math divided by ShiftCount; views/worker filtering keyed on
   `ShiftIndex == SelectedShift` (was 2-item first/second toggle).
 ### TwoShiftsWorkersToggle.cs (rewritten)
-- N-item `SliderToggle` (factory takes params array); shift 3 icon generated at runtime
-  (64×64 purple square) since the asset bundle has only two sprites.
+- N-item `SliderToggle` (factory takes params array).
+- Icons: shift 0 = bundle sun `first-shift`, 2-shift mode shift 1 = bundle moon
+  `second-shift`, 3-shift mode shift 1 = `version-1.1\Assets\midday-shift.png`
+  loaded at runtime (ImageConversion + Sprite.Create; moon fallback), shift 2 =
+  bundle moon. Tooltip closure captures the item index (was the loop variable,
+  always showing "ShowShift4").
 ### SecondShiftCoreUIConfigurator.cs — unchanged.
 
 ## Data
