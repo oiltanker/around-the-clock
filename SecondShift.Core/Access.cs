@@ -13,7 +13,14 @@ namespace SecondShift.Core {
     private static readonly Dictionary<string, object> Statics = new();
 
     public static object GetField(object obj, string name) {
-      return FieldOf(obj.GetType(), name).GetValue(obj);
+      if (obj == null) {
+        throw new ArgumentNullException(nameof(obj), $"Access.GetField('{name}') on null instance");
+      }
+      var field = FieldOf(obj.GetType(), name);
+      if (field == null) {
+        throw new MissingMemberException(obj.GetType().FullName, name);
+      }
+      return field.GetValue(obj);
     }
 
     public static T GetField<T>(object obj, string name) {
