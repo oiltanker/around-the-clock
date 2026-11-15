@@ -1,6 +1,6 @@
 using HarmonyLib;
 using JetBrains.Annotations;
-using SecondShift.Core;
+using AroundTheClock.Core;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -8,7 +8,7 @@ using Timberborn.NeedBehaviorSystem;
 using Timberborn.SleepSystem;
 using Timberborn.TimeSystem;
 
-namespace SecondShift.Patching {
+namespace AroundTheClock.Patching {
   [HarmonyPatch]
   [UsedImplicitly]
   internal static class HoursToDawnPatcher {
@@ -22,11 +22,11 @@ namespace SecondShift.Patching {
                            "HoursToNextHour");
 
     public static float Adjust(float original, Sleeper sleeper) {
-      if (sleeper.GetComponent<TwoShiftsWorkingHours>() is { } twoShiftsWorkingHours
-          && twoShiftsWorkingHours.NeedsWakeAdjust()) {
+      if (sleeper.GetComponent<WorkerShiftHours>() is { } workerShiftHours
+          && workerShiftHours.NeedsWakeAdjust()) {
         var dayNightCycle = (IDayNightCycle)Access.GetField(sleeper, "_dayNightCycle");
         return (float)HoursToNextHour.Invoke(null, new object[] {
-            (float)twoShiftsWorkingHours.WakeHour,
+            (float)workerShiftHours.WakeHour,
             dayNightCycle.HoursPassedToday
         });
       }

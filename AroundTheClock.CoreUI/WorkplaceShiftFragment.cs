@@ -1,4 +1,4 @@
-using SecondShift.Core;
+using AroundTheClock.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -19,21 +19,21 @@ using Timberborn.WorkSystemUI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SecondShift.CoreUI {
-  internal class TwoShiftsWorkplaceFragment : IEntityPanelFragment {
+namespace AroundTheClock.CoreUI {
+  internal class WorkplaceShiftFragment : IEntityPanelFragment {
 
     private const int RegularMode = 0;
-    private const int TwoShiftsMode = 1;
+    private const int ShiftViewMode = 1;
     private const int ThreeShiftsMode = 2;
 
     private static readonly string PriorityLabelLocKey = "Work.Workplace.DisplayName";
     private static readonly string PriorityTooltipLocKey = "Work.PriorityTitle";
     private static readonly string CurrentWorkersLocKey = "Work.CurrentWorkers";
-    private static readonly string SecondShiftDisabledLocKey = "SecondShift.Disabled";
-    private static readonly string ShiftModeLocKey = "SecondShift.ShiftMode";
-    private static readonly string ModeRegularLocKey = "SecondShift.Mode.Regular";
-    private static readonly string ModeTwoShiftsLocKey = "SecondShift.Mode.TwoShifts";
-    private static readonly string ModeThreeShiftsLocKey = "SecondShift.Mode.ThreeShifts";
+    private static readonly string SecondShiftDisabledLocKey = "AroundTheClock.Disabled";
+    private static readonly string ShiftModeLocKey = "AroundTheClock.ShiftMode";
+    private static readonly string ModeRegularLocKey = "AroundTheClock.Mode.Regular";
+    private static readonly string ModeTwoShiftsLocKey = "AroundTheClock.Mode.TwoShifts";
+    private static readonly string ModeThreeShiftsLocKey = "AroundTheClock.Mode.ThreeShifts";
     private static readonly string IncreaseWorkersKey = "IncreaseWorkers";
     private static readonly string DecreaseWorkersKey = "DecreaseWorkers";
     private static readonly string ToggleWorkerTypeKey = "ToggleWorkerType";
@@ -48,22 +48,22 @@ namespace SecondShift.CoreUI {
     private readonly BindableButtonFactory _bindableButtonFactory;
     private readonly DropdownListDrawer _dropdownListDrawer;
     private readonly DropdownItemsSetter _dropdownItemsSetter;
-    private readonly TwoShiftsWorkersToggle _twoShiftsWorkersToggle;
+    private readonly ShiftsBar _shiftsBar;
     private VisualElement _root;
     private VisualElement _workplaceUsers;
     private Label _text;
     private BindableButton _increase;
     private BindableButton _decrease;
-    private Toggle _twoShiftsEnabledToggle;
+    private Toggle _legacyToggle;
     private Dropdown _shiftModeDropdown;
     private WorkerTypeToggle _workerTypeToggle;
     private Workplace _workplace;
-    private TwoShiftsWorkplace _twoShiftsWorkplace;
+    private ShiftWorkplace _shiftWorkplace;
     private WorkplaceDescriber _workplaceDescriber;
     private readonly List<WorkerViewRef> _views = new();
     private PriorityToggleGroup _priorityToggleGroup;
 
-    public TwoShiftsWorkplaceFragment(
+    public WorkplaceShiftFragment(
         VisualElementLoader visualElementLoader,
         WorkerViewFactory workerViewFactory,
         EntitySelectionService entitySelectionService,
@@ -75,7 +75,7 @@ namespace SecondShift.CoreUI {
         BindableButtonFactory bindableButtonFactory,
         DropdownListDrawer dropdownListDrawer,
         DropdownItemsSetter dropdownItemsSetter,
-        TwoShiftsWorkersToggle twoShiftsWorkersToggle) {
+        ShiftsBar shiftsBar) {
       _visualElementLoader = visualElementLoader;
       _workerViewFactory = workerViewFactory;
       _entitySelectionService = entitySelectionService;
@@ -87,7 +87,7 @@ namespace SecondShift.CoreUI {
       _bindableButtonFactory = bindableButtonFactory;
       _dropdownListDrawer = dropdownListDrawer;
       _dropdownItemsSetter = dropdownItemsSetter;
-      _twoShiftsWorkersToggle = twoShiftsWorkersToggle;
+      _shiftsBar = shiftsBar;
     }
 
     public VisualElement InitializeFragment() {
@@ -108,13 +108,12 @@ namespace SecondShift.CoreUI {
                                             PriorityTooltipLocKey);
       _workerTypeToggle = _workerTypeToggleFactory.CreateBindable(
           _root.Q<VisualElement>("WorkerTypeToggleWrapper"), ToggleWorkerTypeKey);
-      _twoShiftsEnabledToggle = _root.Q<Toggle>("TwoShiftsToggle");
-      _twoShiftsEnabledToggle.RegisterValueChangedCallback(ToggleTwoShifts);
-      _tooltipRegistrar.Register(_twoShiftsEnabledToggle, GetTwoShiftsTooltip);
+      _legacyToggle = _root.Q<Toggle>("TwoShiftsToggle");
+      _tooltipRegistrar.Register(_legacyToggle, GetShiftsDisabledTooltip);
 
       // Replace the fixed UXML toggle with a 3-way dropdown: Regular / 2 / 3 shifts.
-      var toggleParent = _twoShiftsEnabledToggle.parent;
-      _twoShiftsEnabledToggle.style.display = DisplayStyle.None;
+      var toggleParent = _legacyToggle.parent;
+      _legacyToggle.style.display = DisplayStyle.None;
       _shiftModeDropdown = new Dropdown();
       _shiftModeDropdown.Initialize(_dropdownListDrawer);
       _shiftModeDropdown.OverrideLabelLocKey(ShiftModeLocKey);
@@ -123,10 +122,10 @@ namespace SecondShift.CoreUI {
       _shiftModeDropdown.Q<Label>("Label").style.display = DisplayStyle.None;
       _dropdownItemsSetter.SetItems(_shiftModeDropdown, new ShiftModeDropdownProvider(
           new[] { _loc.T(ModeRegularLocKey), _loc.T(ModeTwoShiftsLocKey), _loc.T(ModeThreeShiftsLocKey) },
-          () => _twoShiftsWorkplace?.ShiftCount ?? 0,
+          () => _shiftWorkplace?.ShiftCount ?? 0,
           count => {
-            if (_twoShiftsWorkplace != null) {
-              _twoShiftsWorkplace.SetShiftCount(count);
+            if (_shiftWorkplace != null) {
+              _shiftWorkplace.SetShiftCount(count);
             }
           }));
       // Label on the left, dropdown pushed to the right.
@@ -155,7 +154,7 @@ namespace SecondShift.CoreUI {
       // Cancel any stylesheet-fixed width so the bar grows with its buttons.
       barWrapper.style.width = new StyleLength(StyleKeyword.Initial);
       barWrapper.style.maxWidth = new StyleLength(StyleKeyword.Initial);
-      _twoShiftsWorkersToggle.Initialize(barWrapper);
+      _shiftsBar.Initialize(barWrapper);
       _root.ToggleDisplayStyle(false);
       return _root;
     }
@@ -164,7 +163,7 @@ namespace SecondShift.CoreUI {
       _workplace = entity.GetComponent<Workplace>();
       if (_workplace != null) {
         _workplaceDescriber = entity.GetComponent<WorkplaceDescriber>();
-        _twoShiftsWorkplace = entity.GetComponent<TwoShiftsWorkplace>();
+        _shiftWorkplace = entity.GetComponent<ShiftWorkplace>();
         var component = entity.GetComponent<WorkplaceWorkerType>();
         _workerTypeToggle.Show(component);
         _priorityToggleGroup.Enable(entity.GetComponent<WorkplacePriority>());
@@ -172,19 +171,19 @@ namespace SecondShift.CoreUI {
         _increase.Bind();
         _decrease.Bind();
         _shiftModeDropdown.UpdateSelectedValue();
-        _twoShiftsWorkplace.ShiftCountChanged += OnShiftCountChanged;
-        _twoShiftsWorkersToggle.SetShiftCount(_twoShiftsWorkplace.ShiftCount);
-        _twoShiftsWorkersToggle.Open(_twoShiftsWorkplace);
+        _shiftWorkplace.ShiftCountChanged += OnShiftCountChanged;
+        _shiftsBar.SetShiftCount(_shiftWorkplace.ShiftCount);
+        _shiftsBar.Open(_shiftWorkplace);
       }
     }
 
     public void ClearFragment() {
       _workplace = null;
       _workplaceDescriber = null;
-      if (_twoShiftsWorkplace != null) {
-        _twoShiftsWorkplace.ShiftCountChanged -= OnShiftCountChanged;
+      if (_shiftWorkplace != null) {
+        _shiftWorkplace.ShiftCountChanged -= OnShiftCountChanged;
       }
-      _twoShiftsWorkplace = null;
+      _shiftWorkplace = null;
       _workerTypeToggle.Clear();
       _priorityToggleGroup.Disable();
       _root.ToggleDisplayStyle(false);
@@ -207,9 +206,9 @@ namespace SecondShift.CoreUI {
           _workerTypeToggle.Root.ToggleDisplayStyle(false);
         }
         _root.ToggleDisplayStyle(true);
-        _shiftModeDropdown.SetEnabled(_twoShiftsWorkplace.CanBeEnabled);
-        if (_twoShiftsWorkplace.TwoShiftsEnabled) {
-          _twoShiftsWorkersToggle.Update();
+        _shiftModeDropdown.SetEnabled(_shiftWorkplace.CanBeEnabled);
+        if (_shiftWorkplace.ShiftsEnabled) {
+          _shiftsBar.Update();
         }
       } else {
         _root.ToggleDisplayStyle(false);
@@ -217,7 +216,7 @@ namespace SecondShift.CoreUI {
     }
 
     private void AddEmptyViews(WorkplaceWorkerType workplaceWorkerType) {
-      var shiftCount = _twoShiftsWorkplace.ShiftCount;
+      var shiftCount = _shiftWorkplace.ShiftCount;
       var workersToShow = shiftCount > 0
           ? _workplace.MaxWorkers / shiftCount
           : _workplace.MaxWorkers;
@@ -252,13 +251,13 @@ namespace SecondShift.CoreUI {
         }
       }
       var component = _workplace.GetComponent<DistrictBuilding>();
-      var shiftCount = _twoShiftsWorkplace.ShiftCount;
+      var shiftCount = _shiftWorkplace.ShiftCount;
       var desiredWorkers = shiftCount > 0
           ? _workplace.DesiredWorkers / shiftCount
           : _workplace.DesiredWorkers;
       if (_workplace.Understaffed && (bool) (BaseComponent) component.InstantDistrict) {
         if (desiredWorkers > _views.Count) {
-          Debug.LogError($"{nameof(TwoShiftsWorkplaceFragment)}: Not enough views to show all "
+          Debug.LogError($"{nameof(WorkplaceShiftFragment)}: Not enough views to show all "
                          + $"workers. Desired: {desiredWorkers}, Current: {_views.Count}, "
                          + $"Workplace: {component.Name}, MaxWorkers: {_workplace.MaxWorkers}, "
                          + $"ShiftCount: {shiftCount}");
@@ -273,7 +272,7 @@ namespace SecondShift.CoreUI {
     }
 
     private void UpdateButtons() {
-      var shiftCount = _twoShiftsWorkplace.ShiftCount;
+      var shiftCount = _shiftWorkplace.ShiftCount;
       var desiredWorkers = _workplace.DesiredWorkers;
       var maxWorkers = _workplace.MaxWorkers;
       var displayedDesiredWorkers = shiftCount > 0
@@ -294,50 +293,46 @@ namespace SecondShift.CoreUI {
     }
 
     private int GetNumberOfWorkersToShow() {
-      var shiftCount = _twoShiftsWorkplace.ShiftCount;
+      var shiftCount = _shiftWorkplace.ShiftCount;
       var assigned = _workplace.NumberOfAssignedWorkers;
       if (shiftCount == 0) {
         return assigned;
       }
       var count = 0;
       foreach (var worker in _workplace.AssignedWorkers) {
-        if (worker.GetComponent<TwoShiftsWorkingHours>().ShiftIndex
-            == _twoShiftsWorkersToggle.SelectedShift) {
+        if (worker.GetComponent<WorkerShiftHours>().ShiftIndex
+            == _shiftsBar.SelectedShift) {
           count++;
         }
       }
       return count;
     }
 
-    private string GetTwoShiftsTooltip() {
-      return _twoShiftsWorkplace.CanBeEnabled ? null : _loc.T(SecondShiftDisabledLocKey);
+    private string GetShiftsDisabledTooltip() {
+      return _shiftWorkplace.CanBeEnabled ? null : _loc.T(SecondShiftDisabledLocKey);
     }
 
     private bool ShouldBeShown(Worker worker) {
-      var shiftCount = _twoShiftsWorkplace.ShiftCount;
+      var shiftCount = _shiftWorkplace.ShiftCount;
       if (shiftCount == 0) {
         return true;
       }
-      return worker.GetComponent<TwoShiftsWorkingHours>().ShiftIndex
-             == _twoShiftsWorkersToggle.SelectedShift;
+      return worker.GetComponent<WorkerShiftHours>().ShiftIndex
+             == _shiftsBar.SelectedShift;
     }
 
     private void OnShiftCountChanged(object sender, EventArgs e) {
-      var shiftCount = _twoShiftsWorkplace.ShiftCount;
+      var shiftCount = _shiftWorkplace.ShiftCount;
       _shiftModeDropdown.UpdateSelectedValue();
       AddEmptyViews(_workplace.GetComponent<WorkplaceWorkerType>());
       if (shiftCount > 0) {
-        _twoShiftsWorkersToggle.SetShiftCount(shiftCount);
-        _twoShiftsWorkersToggle.Initialize(
+        _shiftsBar.SetShiftCount(shiftCount);
+        _shiftsBar.Initialize(
             _root.Q<VisualElement>("TwoShiftsWorkersToggleWrapper"));
-        _twoShiftsWorkersToggle.Show();
+        _shiftsBar.Show();
       } else {
-        _twoShiftsWorkersToggle.Hide();
+        _shiftsBar.Hide();
       }
-    }
-
-    private void ToggleTwoShifts(ChangeEvent<bool> evt) {
-      // Legacy UXML toggle is hidden; dropdown drives the state.
     }
 
     // WorkerView is internal: late-bound wrapper around the reflected instance.

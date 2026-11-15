@@ -1,8 +1,8 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using JetBrains.Annotations;
 using Timberborn.WorkSystemUI;
 
-namespace SecondShift.Patching {
+namespace AroundTheClock.Patching {
   [HarmonyPatch(typeof(WorkplaceFragment))]
   [UsedImplicitly]
   internal static class WorkplaceFragmentPatcher {

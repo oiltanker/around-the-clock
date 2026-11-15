@@ -1,9 +1,9 @@
 using HarmonyLib;
 using JetBrains.Annotations;
-using SecondShift.Core;
+using AroundTheClock.Core;
 using Timberborn.WorkSystem;
 
-namespace SecondShift.Patching {
+namespace AroundTheClock.Patching {
   [HarmonyPatch(typeof(WorkerWorkingHours), nameof(WorkerWorkingHours.AreWorkingHours),
                 MethodType.Getter)]
   [UsedImplicitly]
@@ -11,7 +11,7 @@ namespace SecondShift.Patching {
 
     [UsedImplicitly]
     public static bool Prefix(WorkerWorkingHours __instance, ref bool __result) {
-      __result = __instance.GetComponent<TwoShiftsWorkingHours>().AreWorkingHours();
+      __result = __instance.GetComponent<WorkerShiftHours>().AreWorkingHours();
       return false;
     }
 

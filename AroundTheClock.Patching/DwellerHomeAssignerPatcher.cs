@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using JetBrains.Annotations;
-using SecondShift.Core;
+using AroundTheClock.Core;
 using Timberborn.BaseComponentSystem;
 using Timberborn.Beavers;
 using Timberborn.DwellingSystem;
 
-namespace SecondShift.Patching;
+namespace AroundTheClock.Patching;
 
 [HarmonyPatch(typeof(DwellerHomeAssigner), "AssignDweller")]
 [UsedImplicitly]
@@ -24,19 +24,19 @@ internal class DwellerHomeAssignerPatcher
 		{
 			foreach (Beaver item in primaryBeavers.Concat(secondaryBeavers))
 			{
-				TwoShiftsWorkingHours component = ((BaseComponent)item).GetComponent<TwoShiftsWorkingHours>();
+				WorkerShiftHours component = ((BaseComponent)item).GetComponent<WorkerShiftHours>();
 				if (component == null)
 				{
 					continue;
 				}
 				Dweller? obj = dwellingComponent.AdultDwellers.FirstOrDefault();
-				TwoShiftsWorkingHours twoShiftsWorkingHours = ((obj != null) ? ((BaseComponent)obj).GetComponent<TwoShiftsWorkingHours>() : null);
-				if (twoShiftsWorkingHours == null)
+				WorkerShiftHours workerShiftHours = ((obj != null) ? ((BaseComponent)obj).GetComponent<WorkerShiftHours>() : null);
+				if (workerShiftHours == null)
 				{
 					continue;
 				}
 				Dweller component2 = ((BaseComponent)item).GetComponent<Dweller>();
-				if (component.GoesToSleepTogetherWith(twoShiftsWorkingHours))
+				if (component.GoesToSleepTogetherWith(workerShiftHours))
 				{
 					if (component2.IsLookingForBetterHome() && (bool)Access.Invoke(dwelling, "CanAssignDweller", component2))
 					{

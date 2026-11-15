@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using Timberborn.DropdownSystem;
 
-namespace SecondShift.CoreUI {
-  // Bridges the shift-mode Dropdown to TwoShiftsWorkplace. Items are display strings.
+namespace AroundTheClock.CoreUI {
+  // Bridges the shift-mode Dropdown to ShiftWorkplace. Items are display strings.
   internal sealed class ShiftModeDropdownProvider : IDropdownProvider {
     private readonly IReadOnlyList<string> _items;
     private readonly Func<int> _getShiftCount;

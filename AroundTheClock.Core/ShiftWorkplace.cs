@@ -7,20 +7,20 @@ using Timberborn.WorkerTypesUI;
 using Timberborn.WorkSystem;
 using Timberborn.WorldPersistence;
 
-namespace SecondShift.Core {
-  public class TwoShiftsWorkplace : BaseComponent,
+namespace AroundTheClock.Core {
+  public class ShiftWorkplace : BaseComponent,
                                      IAwakableComponent,
                                      IPersistentEntity,
                                      IInitializableEntity,
-                                     IDuplicable<TwoShiftsWorkplace> {
+                                     IDuplicable<ShiftWorkplace> {
 
-    private static readonly ComponentKey TwoShiftsWorkplaceKey = new("TwoShiftsWorkplace");
-    private static readonly PropertyKey<bool> TwoShiftsEnabledKey = new("TwoShiftsEnabled"); // legacy v1.1.1 saves
+    private static readonly ComponentKey ShiftWorkplaceKey = new("ShiftWorkplace");
+    private static readonly PropertyKey<bool> LegacyEnabledKey = new("TwoShiftsEnabled"); // legacy v1.1.1 saves
     private static readonly PropertyKey<int> ShiftCountKey = new("ShiftCount");
 
     public event EventHandler ShiftCountChanged;
     public int ShiftCount { get; private set; }
-    public bool TwoShiftsEnabled => ShiftCount > 0;
+    public bool ShiftsEnabled => ShiftCount > 0;
     public bool CanBeEnabled { get; private set; } = true;
     public bool WasLoaded { get; private set; }
     private Workplace _workplace;
@@ -39,19 +39,19 @@ namespace SecondShift.Core {
 
     public void Save(IEntitySaver entitySaver) {
       if (ShiftCount > 0) {
-        var component = entitySaver.GetComponent(TwoShiftsWorkplaceKey);
+        var component = entitySaver.GetComponent(ShiftWorkplaceKey);
         component.Set(ShiftCountKey, ShiftCount);
         if (ShiftCount == 2) {
-          component.Set(TwoShiftsEnabledKey, true); // legacy: original mod can read this save
+          component.Set(LegacyEnabledKey, true); // legacy: original mod can read this save
         }
       }
     }
 
     public void Load(IEntityLoader entityLoader) {
-      if (entityLoader.TryGetComponent(TwoShiftsWorkplaceKey, out var component)) {
+      if (entityLoader.TryGetComponent(ShiftWorkplaceKey, out var component)) {
         if (component.Has(ShiftCountKey)) {
           SetShiftCountInternal(component.Get(ShiftCountKey), isLoading: true);
-        } else if (component.Get(TwoShiftsEnabledKey)) {
+        } else if (component.Get(LegacyEnabledKey)) {
           SetShiftCountInternal(2, isLoading: true);
         }
       }
@@ -66,17 +66,17 @@ namespace SecondShift.Core {
       _desiredWorkersToLoad = desiredWorkers;
     }
 
-    public void DuplicateFrom(TwoShiftsWorkplace source) {
+    public void DuplicateFrom(ShiftWorkplace source) {
       if (source.ShiftCount != ShiftCount) {
         SetShiftCountInternal(source.ShiftCount, isLoading: false);
       }
     }
 
-    public void EnableTwoShifts() {
+    public void EnableShifts() {
       SetShiftCount(2);
     }
 
-    public void DisableTwoShifts() {
+    public void DisableShifts() {
       SetShiftCount(0);
     }
 

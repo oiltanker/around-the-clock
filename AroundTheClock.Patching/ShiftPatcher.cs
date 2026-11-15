@@ -2,12 +2,12 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using Timberborn.ModManagerScene;
 
-namespace SecondShift.Patching {
+namespace AroundTheClock.Patching {
   [UsedImplicitly]
-  internal class SecondShiftPatcher : IModStarter {
+  internal class ShiftPatcher : IModStarter {
 
     public void StartMod(IModEnvironment modEnvironment) {
-      new Harmony("eMka.SecondShift.ThreeShifts").PatchAll();
+      new Harmony("Oiltanker.AroundTheClock").PatchAll();
     }
 
   }

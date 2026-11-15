@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SecondShift.Core {
+namespace AroundTheClock.Core {
 
   // Reflection access to internal/private game members. Unity Mono ignores
   // IgnoresAccessChecksTo, so direct IL access to non-public members throws

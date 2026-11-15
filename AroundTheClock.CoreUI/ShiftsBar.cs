@@ -1,4 +1,4 @@
-using SecondShift.Core;
+using AroundTheClock.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,8 +11,8 @@ using Timberborn.TimeSystem;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SecondShift.CoreUI {
-  internal class TwoShiftsWorkersToggle {
+namespace AroundTheClock.CoreUI {
+  internal class ShiftsBar {
 
     private readonly SliderToggleFactory _sliderToggleFactory;
     private readonly ILoc _loc;
@@ -24,7 +24,7 @@ namespace SecondShift.CoreUI {
     public int SelectedShift { get; private set; }
     public int ShiftCount { get; private set; }
 
-    public TwoShiftsWorkersToggle(SliderToggleFactory sliderToggleFactory,
+    public ShiftsBar(SliderToggleFactory sliderToggleFactory,
                                   ILoc loc,
                                   IAssetLoader assetLoader,
                                   IDayNightCycle dayNightCycle) {
@@ -47,9 +47,9 @@ namespace SecondShift.CoreUI {
       _sliderToggle = _sliderToggleFactory.Create(parent, items.ToArray());
     }
 
-    public void Open(TwoShiftsWorkplace twoShiftsWorkplace) {
-      ShiftCount = twoShiftsWorkplace.ShiftCount;
-      if (twoShiftsWorkplace.ShiftCount > 0) {
+    public void Open(ShiftWorkplace shiftWorkplace) {
+      ShiftCount = shiftWorkplace.ShiftCount;
+      if (shiftWorkplace.ShiftCount > 0) {
         Show();
       } else {
         Hide();
@@ -89,10 +89,10 @@ namespace SecondShift.CoreUI {
       var shiftCount = ShiftCount;
       if (shiftCount == 2) {
         return shift == 0
-            ? _loc.T("SecondShift.ShowFirstShift")
-            : _loc.T("SecondShift.ShowSecondShift");
+            ? _loc.T("AroundTheClock.ShowFirstShift")
+            : _loc.T("AroundTheClock.ShowSecondShift");
       }
-      return _loc.T("SecondShift.ShowShift" + (shift + 1));
+      return _loc.T("AroundTheClock.ShowShift" + (shift + 1));
     }
 
     private Sprite GetIcon(int shift) {
@@ -123,7 +123,7 @@ namespace SecondShift.CoreUI {
         _middaySprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
                                       new Vector2(0.5f, 0.5f), 100f);
       } catch (Exception e) {
-        Debug.LogWarning($"[SecondShift] midday-shift.png load failed, using moon fallback: {e.Message}");
+        Debug.LogWarning($"[AroundTheClock] midday-shift.png load failed, using moon fallback: {e.Message}");
         _middaySprite = _assetLoader.Load<Sprite>("UI/Images/Game/second-shift");
       }
       return _middaySprite;
@@ -133,7 +133,7 @@ namespace SecondShift.CoreUI {
       const string fileName = "midday-shift.png";
       var candidates = new List<string>();
       try {
-        var location = typeof(TwoShiftsWorkersToggle).Assembly.Location;
+        var location = typeof(ShiftsBar).Assembly.Location;
         if (!string.IsNullOrEmpty(location)) {
           var dir = Path.GetDirectoryName(location);
           candidates.Add(Path.GetFullPath(Path.Combine(dir, "..", "Assets", fileName)));

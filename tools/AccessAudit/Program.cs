@@ -54,7 +54,7 @@ string Check(object operand) {
   }
   var asmName = (declType.Scope as AssemblyNameReference)?.Name;
   if (asmName == null) return null;
-  if (!asmName.StartsWith("Timberborn") && !asmName.StartsWith("SecondShift")) return null;
+  if (!asmName.StartsWith("Timberborn") && !asmName.StartsWith("AroundTheClock")) return null;
   if (ResolveTarget(asmName) == null) return null; // assembly not found in search dirs: skip
   var def = declType.Resolve();
   if (def == null) return null;

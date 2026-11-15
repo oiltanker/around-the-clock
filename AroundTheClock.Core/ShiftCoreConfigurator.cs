@@ -2,13 +2,13 @@ using Bindito.Core;
 using Timberborn.TemplateInstantiation;
 using Timberborn.WorkSystem;
 
-namespace SecondShift.Core {
+namespace AroundTheClock.Core {
   [Context("Game")]
-  internal class SecondShiftCoreConfigurator : Configurator {
+  internal class ShiftCoreConfigurator : Configurator {
 
     protected override void Configure() {
-      Bind<TwoShiftsWorkingHours>().AsTransient();
-      Bind<TwoShiftsWorkplace>().AsTransient();
+      Bind<WorkerShiftHours>().AsTransient();
+      Bind<ShiftWorkplace>().AsTransient();
       Bind<WorkerPositionFixer>().AsTransient();
 
       MultiBind<TemplateModule>()
@@ -18,8 +18,8 @@ namespace SecondShift.Core {
 
     private static TemplateModule ProvideTemplateModule() {
       var builder = new TemplateModule.Builder();
-      builder.AddDecorator<WorkerWorkingHours, TwoShiftsWorkingHours>();
-      builder.AddDecorator<Workplace, TwoShiftsWorkplace>();
+      builder.AddDecorator<WorkerWorkingHours, WorkerShiftHours>();
+      builder.AddDecorator<Workplace, ShiftWorkplace>();
       builder.AddDecorator<Worker, WorkerPositionFixer>();
       return builder.Build();
     }

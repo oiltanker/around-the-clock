@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>SecondShift.Patching</AssemblyName>
+    <AssemblyName>AroundTheClock.Patching</AssemblyName>
     <LangVersion>10</LangVersion>
     <Nullable>disable</Nullable>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
@@ -11,7 +11,7 @@
     <Compile Include="**/*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SecondShift.Core\SecondShift.Core.csproj" />
+    <ProjectReference Include="..\AroundTheClock.Core\AroundTheClock.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0Harmony"><HintPath>$(HarmonyDir)\0Harmony.dll</HintPath><Private>false</Private></Reference>

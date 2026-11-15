@@ -9,7 +9,7 @@
    `tools/AccessInjector` injects `[assembly: IgnoresAccessChecksTo]` — **works in .NET
    but Unity Mono 1.1.2.8 ignores the attribute** (verified: crash persisted with
    attribute attached). Fix (final): all flagged sites rewritten with cached reflection
-   (`SecondShift.Core/Access.cs`); audit now reports only `BaseComponent::.ctor`
+   (`AroundTheClock.Core/Access.cs`); audit now reports only `BaseComponent::.ctor`
    family-access false positives.
 2. **ReflectionTypeLoadException (System.Private.CoreLib 8.0)** — injector leaked
    .NET 8 corelib refs; fixed by scoping injected refs to the module's core library
@@ -22,7 +22,7 @@
 
 - Shift-mode selector: game-native `Timberborn.DropdownSystem` `Dropdown`
   (DropdownListDrawer + DropdownItemsSetter + `ShiftModeDropdownProvider`), label
-  `SecondShift.ShiftMode`; replaces the unstyled Unity DropdownField.
+  `AroundTheClock.ShiftMode`; replaces the unstyled Unity DropdownField.
 - Shift viewer tooltips: fixed loop-variable closure bug (was always `ShowShift4`);
   names localized as "Show morning/afternoon/night shift" (enUS/plPL/ukUA;
   ukUA dropdown labels translated too).
@@ -43,9 +43,9 @@
 
 | File | SHA256 (build 2026-11-15 18:52) |
 |---|---|
-| SecondShift.Core.dll | 27435895C6D934DACD31422BDAA3447E22A9763D9C8105D924CBF6552B133D44 |
-| SecondShift.CoreUI.dll | 50F691FDF91B7A54C3DD711BD949ADAEB4C44C944B3ECBEB3F7DE61C2ABB7DD7 |
-| SecondShift.Patching.dll | 77D26070158D63143ABEA923CE5ABF441A4521F8479E05248149739042D3DBBE |
+| AroundTheClock.Core.dll | 27435895C6D934DACD31422BDAA3447E22A9763D9C8105D924CBF6552B133D44 |
+| AroundTheClock.CoreUI.dll | 50F691FDF91B7A54C3DD711BD949ADAEB4C44C944B3ECBEB3F7DE61C2ABB7DD7 |
+| AroundTheClock.Patching.dll | 77D26070158D63143ABEA923CE5ABF441A4521F8479E05248149739042D3DBBE |
 
 Note: DLL hashes change on every rebuild (module GUID/MVID), so treat them as
 per-build fingerprints, not stable identities.
@@ -58,7 +58,7 @@ in obj, CS8632 nullable annotation in recovered DwellerHomeAssignerPatcher).
 Verified:
 - Assembly references of deployed DLLs = game-shipped assemblies + 0Harmony + sibling mod DLLs
   (no publicized DLLs shipped).
-- Decompiled deployed Core confirms `ShiftCount`/`ShiftCountKey` and Harmony id `eMka.SecondShift.ThreeShifts`.
+- Decompiled deployed Core confirms `ShiftCount`/`ShiftCountKey` and Harmony id `Oiltanker.AroundTheClock`.
 - Mod folder contains no bin/obj (build tree lives outside it).
 
 ## Runtime semantics
@@ -112,7 +112,7 @@ Practical effects (all soft):
 
 - Conflicts: original Second Shift (both Harmony-patch `Workplace`, `WorkerWorkingHours`),
   Workplace Schedules family (patches `WorkerWorkingHours.AreWorkingHours`). Enable exactly one.
-- Saves: old Second Shift saves load (legacy `TwoShiftsEnabled` -> 2 shifts). Saves made by this
+- Saves: old Second Shift / Three Shifts saves load (legacy `TwoShiftsEnabled` -> 2 shifts). Saves made by this
   fork in 2-shift mode remain loadable by the original mod; 3-shift workplaces degrade to
   no-shift in the original mod (unknown `ShiftCount` key ignored, DesiredWorkers halved by its
   `Workplace.Load` prefix — MaxWorkers falls back to spec value).

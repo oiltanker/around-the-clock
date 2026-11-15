@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Timberborn.BaseComponentSystem;
 using Timberborn.Common;
 using Timberborn.EntitySystem;
@@ -6,7 +6,7 @@ using Timberborn.Persistence;
 using Timberborn.WorkSystem;
 using Timberborn.WorldPersistence;
 
-namespace SecondShift.Core {
+namespace AroundTheClock.Core {
   internal class WorkerPositionFixer : BaseComponent,
                                        IAwakableComponent,
                                        IPersistentEntity,

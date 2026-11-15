@@ -4,8 +4,8 @@ using Timberborn.TimeSystem;
 using Timberborn.WorkSystem;
 using UnityEngine;
 
-namespace SecondShift.Core {
-  public class TwoShiftsWorkingHours : BaseComponent,
+namespace AroundTheClock.Core {
+  public class WorkerShiftHours : BaseComponent,
                                        IAwakableComponent {
 
     public const int VanillaSleepStart = 22;
@@ -17,7 +17,7 @@ namespace SecondShift.Core {
     private Worker _worker;
     private WorkerWorkingHours _workerWorkingHours;
 
-    public TwoShiftsWorkingHours(IDayNightCycle dayNightCycle,
+    public WorkerShiftHours(IDayNightCycle dayNightCycle,
                                  WorkingHoursManager workingHoursManager) {
       _dayNightCycle = dayNightCycle;
       _workingHoursManager = workingHoursManager;
@@ -39,7 +39,7 @@ namespace SecondShift.Core {
       return TimeShiftIndex(count) == ShiftIndex;
     }
 
-    public bool IsSecondShiftWorker() {
+    public bool IsAfternoonShiftWorker() {
       return ShiftIndex == 1;
     }
 
@@ -62,7 +62,7 @@ namespace SecondShift.Core {
 
     public int WorkplaceShiftCount {
       get {
-        return _worker.Workplace?.GetComponent<TwoShiftsWorkplace>()?.ShiftCount ?? 0;
+        return _worker.Workplace?.GetComponent<ShiftWorkplace>()?.ShiftCount ?? 0;
       }
     }
 
@@ -79,7 +79,7 @@ namespace SecondShift.Core {
       return (index * 8, 8);
     }
 
-    public bool GoesToSleepTogetherWith(TwoShiftsWorkingHours other) {
+    public bool GoesToSleepTogetherWith(WorkerShiftHours other) {
       var myCount = WorkplaceShiftCount;
       var otherCount = other.WorkplaceShiftCount;
       if (myCount > 0 && otherCount > 0 && myCount == otherCount) {

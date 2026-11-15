@@ -1,12 +1,12 @@
 using HarmonyLib;
 using JetBrains.Annotations;
-using SecondShift.Core;
+using AroundTheClock.Core;
 using System;
 using Timberborn.Persistence;
 using Timberborn.WorkSystem;
 using Timberborn.WorldPersistence;
 
-namespace SecondShift.Patching {
+namespace AroundTheClock.Patching {
   [HarmonyPatch(typeof(Workplace))]
   [UsedImplicitly]
   internal class WorkplacePatcher {
@@ -15,7 +15,7 @@ namespace SecondShift.Patching {
     [HarmonyPatch(nameof(Workplace.MaxWorkers), MethodType.Getter)]
     [UsedImplicitly]
     public static bool MaxWorkersPrefix(Workplace __instance, ref int __result) {
-      var shiftCount = __instance.GetComponent<TwoShiftsWorkplace>().ShiftCount;
+      var shiftCount = __instance.GetComponent<ShiftWorkplace>().ShiftCount;
       var spec = (WorkplaceSpec)Access.GetField(__instance, "_workplaceSpec");
       var baseMaxWorkers = spec.MaxWorkers;
       __result = shiftCount > 0 ? baseMaxWorkers * shiftCount : baseMaxWorkers;
@@ -28,14 +28,14 @@ namespace SecondShift.Patching {
     public static bool LoadPrefix(Workplace __instance, IEntityLoader entityLoader) {
       var workplaceKey = Access.GetStatic(typeof(Workplace), "WorkplaceKey");
       if (entityLoader.TryGetComponent((ComponentKey)workplaceKey, out var workplace)) {
-        var twoShiftsWorkplace = __instance.GetComponent<TwoShiftsWorkplace>();
+        var shiftWorkplace = __instance.GetComponent<ShiftWorkplace>();
         var desiredWorkers = workplace.Get(
             (PropertyKey<int>)Access.GetStatic(typeof(Workplace), "DesiredWorkersKey"));
-        if (twoShiftsWorkplace.WasLoaded) {
+        if (shiftWorkplace.WasLoaded) {
           Access.Invoke(__instance, "SetDesiredWorkers",
                         Math.Min(desiredWorkers, __instance.MaxWorkers));
         } else {
-          twoShiftsWorkplace.SetDesiredWorkersToLoad(desiredWorkers);
+          shiftWorkplace.SetDesiredWorkersToLoad(desiredWorkers);
         }
       }
       return false;
@@ -45,7 +45,7 @@ namespace SecondShift.Patching {
     [HarmonyPatch(nameof(Workplace.IncreaseDesiredWorkers))]
     [UsedImplicitly]
     public static bool IncreaseDesiredWorkersPrefix(Workplace __instance) {
-      var steps = __instance.GetComponent<TwoShiftsWorkplace>().ShiftCount;
+      var steps = __instance.GetComponent<ShiftWorkplace>().ShiftCount;
       if (steps < 1) {
         steps = 1;
       }
@@ -59,7 +59,7 @@ namespace SecondShift.Patching {
     [HarmonyPatch(nameof(Workplace.DecreaseDesiredWorkers))]
     [UsedImplicitly]
     public static bool DecreaseDesiredWorkersPrefix(Workplace __instance) {
-      var shiftCount = __instance.GetComponent<TwoShiftsWorkplace>().ShiftCount;
+      var shiftCount = __instance.GetComponent<ShiftWorkplace>().ShiftCount;
       var minDesired = shiftCount > 0 ? shiftCount : 1;
       if (__instance.DesiredWorkers > minDesired) {
         var steps = Math.Min(shiftCount, __instance.DesiredWorkers - minDesired);

@@ -1,5 +1,5 @@
 // Injects [assembly: IgnoresAccessChecksTo("<game assembly>")] for every
-// referenced Timberborn.*/SecondShift.* assembly, defining the attribute type
+// referenced Timberborn.*/AroundTheClock.* assembly, defining the attribute type
 // locally. All injected references must reuse the target module's own core
 // library scope — importing from the writing runtime leaks System.Private.CoreLib.
 // Usage: AccessInjector <dll> [dll...]
@@ -46,7 +46,7 @@ foreach (var path in args) {
     var attrCtor = module.ImportReference(attrType.Methods.Single(c => c.IsConstructor));
 
     var targets = asm.MainModule.AssemblyReferences
-        .Where(r => r.Name.StartsWith("Timberborn") || r.Name.StartsWith("SecondShift"))
+        .Where(r => r.Name.StartsWith("Timberborn") || r.Name.StartsWith("AroundTheClock"))
         .Select(r => r.Name)
         .Distinct()
         .ToList();
