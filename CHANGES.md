@@ -1,6 +1,6 @@
 # Changes vs upstream Second Shift v1.1.1.0
 
-Mod identity (v1.3.0.0 "Around The Clock"): Id `eMka.SecondShift` -> `Oiltanker.AroundTheClock`,
+Mod identity (v1.0.0.0 "Around The Clock"): Id `eMka.SecondShift` -> `Oiltanker.AroundTheClock`,
 Harmony id `eMka.SecondShift` -> `Oiltanker.AroundTheClock`. Full C+D rename: namespaces,
 projects, assemblies and classes renamed; **serialization keys kept verbatim**
 (`TwoShiftsWorkplace` component key, `ShiftCount`, legacy `TwoShiftsEnabled`), so saves from
